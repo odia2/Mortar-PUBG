@@ -3,14 +3,14 @@ const map = L.map('map', {
     minZoom: 0,
     maxZoom: 3,
     crs: L.CRS.Simple,
-    center: [0, 0],
+    center: [634, 634],  // ✅ Центр карты (половина от 1267×1269)
     zoom: 1
 });
 
 // Границы карты
 const bounds = [[0, 0], [1267, 1269]];
 
-// Тайлы из GitHub ✅
+// Тайлы из GitHub
 L.tileLayer('PUBG_Erangel_Remaster/{z}/{x}/{y}.png', {
     minZoom: 0,
     maxZoom: 3,
