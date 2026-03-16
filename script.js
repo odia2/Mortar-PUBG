@@ -3,14 +3,14 @@ const map = L.map('map', {
     minZoom: 1,
     maxZoom: 4,
     crs: L.CRS.Simple,
-    center: [0, 0],
-    zoom: 1
+    center: [634, 634],
+    zoom: 2
 });
 
 // Границы карты
 const bounds = [[0, 0], [1267, 1269]];
 
-// Прямая ссылка на твою карту (не тайлы!)
+// Ссылка на карту в репозитории
 const imageUrl = 'https://raw.githubusercontent.com/odia2/Mortar-PUBG/main/PUBG_Erangel_Remaster.png';
 
 // Добавляем изображение
@@ -18,9 +18,6 @@ L.imageOverlay(imageUrl, bounds).addTo(map);
 
 // Ограничиваем карту
 map.setMaxBounds(bounds);
-
-// Центрируем
-map.fitBounds(bounds);
 
 // Маркеры
 let markers = [];
