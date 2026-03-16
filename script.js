@@ -42,7 +42,7 @@ const maps = {
 const MORTAR_CONFIG = {
     minRange: 100,      // Мин. дистанция (м)
     maxRange: 800,      // Макс. дистанция (м)
-    shellRadius: 25,    // Радиус разрыва снаряда (м)
+    shellRadius: 10,    // Радиус разрыва снаряда (м) ← 10м = 100% смерть
     projectileSpeed: 110 // Скорость снаряда (м/с)
 };
 
@@ -58,19 +58,19 @@ let mortarCircleMin = null;
 let mortarCircleMax = null;
 let mortarPosition = null;
 
-// Иконки
+// Иконки (УМЕНЬШЕНЫ В 2 РАЗА: 40px → 20px)
 const mortarIcon = L.divIcon({
     className: 'mortar-icon',
-    html: '<div style="width: 40px; height: 40px; background: #ff3b3b; border: 3px solid white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 20px; box-shadow: 0 0 15px #ff3b3b;">🎯</div>',
-    iconSize: [40, 40],
-    iconAnchor: [20, 20]
+    html: '<div style="width: 20px; height: 20px; background: #ff3b3b; border: 2px solid white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; box-shadow: 0 0 10px #ff3b3b;">🎯</div>',
+    iconSize: [20, 20],
+    iconAnchor: [10, 10]
 });
 
 const targetIcon = L.divIcon({
     className: 'target-icon',
-    html: '<div style="width: 40px; height: 40px; background: #00ff88; border: 3px solid white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 20px; box-shadow: 0 0 15px #00ff88;">💥</div>',
-    iconSize: [40, 40],
-    iconAnchor: [20, 20]
+    html: '<div style="width: 20px; height: 20px; background: #00ff88; border: 2px solid white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 10px; box-shadow: 0 0 10px #00ff88;">💥</div>',
+    iconSize: [20, 20],
+    iconAnchor: [10, 10]
 });
 
 const standardIcon = L.divIcon({
@@ -96,6 +96,51 @@ function initMap() {
     
     // Загрузка сохранённой темы
     loadTheme();
+    
+    // Инициализация перетаскивания popup
+    initPopupDrag();
+}
+
+// Перетаскивание popup (ЛКМ) + Удаление (ПКМ)
+function initPopupDrag() {
+    let draggedPopup = null;
+    let dragOffset = { x: 0, y: 0 };
+    
+    document.addEventListener('mousedown', function(e) {
+        const popup = document.querySelector('.leaflet-popup-content-wrapper');
+        if (popup && popup.contains(e.target) && e.button === 0) {
+            draggedPopup = popup;
+            const rect = popup.getBoundingClientRect();
+            dragOffset.x = e.clientX - rect.left;
+            dragOffset.y = e.clientY - rect.top;
+            popup.style.cursor = 'grabbing';
+        }
+    });
+    
+    document.addEventListener('mousemove', function(e) {
+        if (draggedPopup) {
+            draggedPopup.style.position = 'fixed';
+            draggedPopup.style.left = (e.clientX - dragOffset.x) + 'px';
+            draggedPopup.style.top = (e.clientY - dragOffset.y) + 'px';
+            draggedPopup.style.zIndex = '10000';
+        }
+    });
+    
+    document.addEventListener('mouseup', function() {
+        if (draggedPopup) {
+            draggedPopup.style.cursor = 'default';
+            draggedPopup = null;
+        }
+    });
+    
+    // Удаление popup (ПКМ)
+    document.addEventListener('contextmenu', function(e) {
+        const popup = document.querySelector('.leaflet-popup-content-wrapper');
+        if (popup && popup.contains(e.target)) {
+            e.preventDefault();
+            map.closePopup();
+        }
+    });
 }
 
 // Загрузка карты
@@ -172,7 +217,7 @@ function loadTheme() {
     }
 }
 
-// Создание кругов миномёта
+// Создание кругов миномёта (ОБНОВЛЕНА ПРОЗРАЧНОСТЬ)
 function createMortarCircles(position) {
     removeCircles();
     
@@ -183,7 +228,7 @@ function createMortarCircles(position) {
         radius: MORTAR_CONFIG.minRange / scale,
         color: '#ff4444',
         fillColor: '#ff4444',
-        fillOpacity: 0.2,
+        fillOpacity: 0.15,  // ← БЫЛО 0.2
         weight: 2,
         className: 'leaflet-circle'
     }).addTo(map);
@@ -193,7 +238,7 @@ function createMortarCircles(position) {
         radius: MORTAR_CONFIG.maxRange / scale,
         color: '#00ff88',
         fillColor: '#00ff88',
-        fillOpacity: 0.15,
+        fillOpacity: 0.08,  // ← БЫЛО 0.15 (теперь прозрачнее!)
         weight: 2,
         className: 'leaflet-circle'
     }).addTo(map);
@@ -315,8 +360,8 @@ function drawMortarLine(distance) {
     
     // Цвет линии зависит от дистанции
     const lineColor = distance <= MORTAR_CONFIG.maxRange && distance >= MORTAR_CONFIG.minRange 
-        ? '#00ff88'  // Зелёный = валидно
-        : '#ff4444'; // Красный = вне диапазона
+        ? '#00ff88'
+        : '#ff4444';
     
     polyline = L.polyline(points.map(p => [p.lat, p.lng]), {
         color: lineColor,
@@ -328,12 +373,14 @@ function drawMortarLine(distance) {
     // Добавить popup с информацией
     const isValid = distance <= MORTAR_CONFIG.maxRange && distance >= MORTAR_CONFIG.minRange;
     const statusText = isValid ? '✅ VALID' : '❌ OUT OF RANGE';
+    const statusEmoji = isValid ? '🟢' : '🔴';
     
     polyline.bindPopup(`
-        <b>Distance:</b> ${distance} m<br>
-        <b>Angle:</b> ${getMortarAngle(distance)}°<br>
-        <b>Flight Time:</b> ${getFlightTime(distance)} с<br>
-        <b>Status:</b> ${statusText}
+        <b>📏 Distance:</b> ${distance} m<br>
+        <b>🎯 Angle:</b> ${getMortarAngle(distance)}°<br>
+        <b>⏱️ Flight Time:</b> ${getFlightTime(distance)} с<br>
+        <b>💥 Kill Radius:</b> ${MORTAR_CONFIG.shellRadius} м<br>
+        <b>${statusEmoji} Status:</b> ${statusText}
     `).openPopup();
     
     map.fitBounds(polyline.getBounds(), { padding: [100, 100] });
