@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mortar Calculator - PUBG</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="sidebar">
+        <h1>🎯 MORTAR CALCULATOR</h1>
+        <p>Поставь 2 точки на карте для расчёта дистанции</p>
+        
+        <div class="info">
+            <div class="distance" id="distance">Дистанция: 0 м</div>
+            <div class="points" id="points">Точек: 0/2</div>
+        </div>
+        
+        <button class="clear-btn" onclick="clearPoints()">🗑️ Очистить карту</button>
+        
+        <div class="instructions">
+            <h3>📌 Инструкция:</h3>
+            <ul>
+                <li>Кликни ЛКМ - поставить точку</li>
+                <li>Поставь 2 точки - увидишь расстояние</li>
+                <li>Очисти - начни заново</li>
+            </ul>
+        </div>
+    </div>
+    
+    <div id="map"></div>
+    
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>
