@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html lang="ru" data-theme="dark">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -17,16 +17,38 @@
         </div>
         
         <div class="controls">
+            <!-- Режим -->
+            <div class="mode-toggle">
+                <span class="mode-label">MODE:</span>
+                <label class="switch">
+                    <input type="checkbox" id="mortarModeToggle" onchange="toggleMortarMode()">
+                    <span class="slider"></span>
+                </label>
+                <span class="mode-text" id="modeText">DISTANCE</span>
+            </div>
+
+            <!-- Тема -->
+            <div class="theme-toggle">
+                <span class="theme-label">THEME:</span>
+                <label class="switch">
+                    <input type="checkbox" id="themeToggle" onchange="toggleTheme()">
+                    <span class="slider"></span>
+                </label>
+                <span class="theme-icon" id="themeIcon">🌙</span>
+            </div>
+            
+            <!-- Карты -->
             <div class="map-selector">
                 <label>🗺️ MAP:</label>
-<select id="mapSelect" onchange="changeMap()">
-    <option value="erangel">Erangel (8×8)</option>
-    <option value="miramar">Miramar (8×8)</option>
-    <option value="vikendi">Vikendi (6×6)</option>
-    <option value="taego">Taego (8×8)</option>
-    <option value="deston">Deston (8×8)</option>
-    <option value="rondo">Rondo (4×4)</option>
-</select>
+                <select id="mapSelect" onchange="changeMap()">
+                    <option value="erangel">Erangel (8×8)</option>
+                    <option value="miramar">Miramar (8×8)</option>
+                    <option value="vikendi">Vikendi (6×6)</option>
+                    <option value="taego">Taego (8×8)</option>
+                    <option value="deston">Deston (8×8)</option>
+                    <option value="rondo">Rondo (4×4)</option>
+                </select>
+            </div>
             
             <button class="btn btn-reset" onclick="resetDistance()">
                 <span>🔄</span> Reset
@@ -45,28 +67,33 @@
         <div id="map"></div>
     </main>
 
-    <!-- HUD панель внизу -->
-<footer class="hud-panel">
-    <div class="hud-item">
-        <span class="hud-label">DISTANCE</span>
-        <span class="hud-value" id="distance">0000 m</span>
-    </div>
-    <div class="hud-divider"></div>
-    <div class="hud-item">
-        <span class="hud-label">MORTAR ANGLE</span>
-        <span class="hud-value" id="angle">--°</span>
-    </div>
-    <div class="hud-divider"></div>
-    <div class="hud-item">
-        <span class="hud-label">FLIGHT TIME</span>
-        <span class="hud-value" id="flightTime">-- с</span>
-    </div>
-    <div class="hud-divider"></div>
-    <div class="hud-item">
-        <span class="hud-label">POINTS</span>
-        <span class="hud-value" id="points">0/2</span>
-    </div>
-</footer>
+    <!-- HUD панель -->
+    <footer class="hud-panel">
+        <div class="hud-item">
+            <span class="hud-label">DISTANCE</span>
+            <span class="hud-value" id="distance">0000 m</span>
+        </div>
+        <div class="hud-divider"></div>
+        <div class="hud-item">
+            <span class="hud-label">MORTAR ANGLE</span>
+            <span class="hud-value" id="angle">--°</span>
+        </div>
+        <div class="hud-divider"></div>
+        <div class="hud-item">
+            <span class="hud-label">FLIGHT TIME</span>
+            <span class="hud-value" id="flightTime">-- с</span>
+        </div>
+        <div class="hud-divider"></div>
+        <div class="hud-item">
+            <span class="hud-label">SHELL RADIUS</span>
+            <span class="hud-value" id="shellRadius">25 м</span>
+        </div>
+        <div class="hud-divider"></div>
+        <div class="hud-item">
+            <span class="hud-label">POINTS</span>
+            <span class="hud-value" id="points">0/2</span>
+        </div>
+    </footer>
 
     <!-- Help Popup -->
     <div class="popup-overlay" id="helpPopup">
@@ -76,14 +103,22 @@
                 <button class="popup-close" onclick="hideHelp()">✕</button>
             </div>
             <div class="popup-content">
+                <h3>📏 Distance Mode:</h3>
                 <ol>
                     <li>Click on the map to place the <strong>first point</strong></li>
                     <li>Click again to place the <strong>second point</strong></li>
                     <li>Distance will be calculated automatically</li>
-                    <li>Use the mortar angle for accurate shots</li>
+                </ol>
+                <h3>🎯 Mortar Mode:</h3>
+                <ol>
+                    <li>Toggle <strong>MORTAR MODE</strong> ON</li>
+                    <li>Click to place <strong>mortar position</strong> (🎯 icon)</li>
+                    <li>Click again to place <strong>target</strong> (💥 icon)</li>
+                    <li>Green circle = max range (800m)</li>
+                    <li>Red circle = min safe distance (100m)</li>
                 </ol>
                 <div class="popup-tip">
-                    💡 Tip: Press <kbd>R</kbd> to reset, <kbd>C</kbd> to clear, <kbd>H</kbd> for help
+                    💡 Tip: Press <kbd>R</kbd> to reset, <kbd>C</kbd> to clear, <kbd>H</kbd> for help, <kbd>M</kbd> toggle mode
                 </div>
             </div>
         </div>
