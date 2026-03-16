@@ -30,12 +30,12 @@ const maps = {
         scale: 4.0,
         realSize: 8000
     },
-    rondo: {
-        url: 'https://raw.githubusercontent.com/odia2/Mortar-PUBG/main/Rondo.png',
-        bounds: [[0, 0], [2000, 2000]],
-        scale: 2.0,
-        realSize: 4000
-    }
+ rondo: {
+    url: 'https://raw.githubusercontent.com/odia2/Mortar-PUBG/main/Rondo_2000x2000.png',
+    bounds: [[0, 0], [2000, 2000]],
+    scale: 2.0,  // ← Остаётся 2.0 (4000м / 2000px)
+    realSize: 4000
+}
 };
 
 // Настройки миномёта
