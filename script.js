@@ -1,10 +1,11 @@
 // Конфигурация карт
 const maps = {
     erangel: {
-        url: 'https://raw.githubusercontent.com/odia2/Mortar-PUBG/main/PUBG_Erangel_Remaster.png',
-        bounds: [[0, 0], [1267, 1269]],
-        scale: 6.31
+        url: 'https://raw.githubusercontent.com/odia2/Mortar-PUBG/main/PUBG_Erangel_2K.png',
+        bounds: [[0, 0], [2000, 2000]],
+        scale: 4.0
     },
+   
     miramar: {
         url: 'https://raw.githubusercontent.com/odia2/Mortar-PUBG/main/Miramar.png',
         bounds: [[0, 0], [1267, 1269]],
@@ -58,9 +59,11 @@ function initMap() {
         minZoom: 1,
         maxZoom: 4,
         crs: L.CRS.Simple,
-        center: [634, 634],
+        center: [1000, 1000],  // ← ПОЛОВИНА ОТ 2000
         zoom: 2
     });
+    // ...
+}
     
     loadMap('erangel');
     map.on('click', handleMapClick);
