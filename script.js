@@ -59,7 +59,7 @@ function initMap() {
         minZoom: 1,
         maxZoom: 4,
         crs: L.CRS.Simple,
-        center: [1000, 1000],  // ← ПОЛОВИНА ОТ 2000
+        center: [1000, 1000],  // ← Половина от 2000
         zoom: 2
     });
     // ...
