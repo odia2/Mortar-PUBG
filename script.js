@@ -3,32 +3,32 @@ const maps = {
     erangel: {
         url: 'https://raw.githubusercontent.com/odia2/Mortar-PUBG/main/Erangel_2000x2000.png',
         bounds: [[0, 0], [2000, 2000]],
-        scale: 4.0  // 8000м / 2000px
+        scale: 4.0
     },
     miramar: {
         url: 'https://raw.githubusercontent.com/odia2/Mortar-PUBG/main/Miramar_2000x2000.png',
         bounds: [[0, 0], [2000, 2000]],
-        scale: 4.0  // 8000м / 2000px
+        scale: 4.0
     },
     vikendi: {
         url: 'https://raw.githubusercontent.com/odia2/Mortar-PUBG/main/Vikendi.png',
         bounds: [[0, 0], [2000, 2000]],
-        scale: 3.0  // 6000м / 2000px
+        scale: 3.0
     },
     taego: {
         url: 'https://raw.githubusercontent.com/odia2/Mortar-PUBG/main/Taego_Main_2000x2000.png',
         bounds: [[0, 0], [2000, 2000]],
-        scale: 4.0  // 8000м / 2000px
+        scale: 4.0
     },
     deston: {
         url: 'https://raw.githubusercontent.com/odia2/Mortar-PUBG/main/Deston_Main_High_Res-2000x2000.png',
         bounds: [[0, 0], [2000, 2000]],
-        scale: 4.0  // 8000м / 2000px
+        scale: 4.0
     },
     rondo: {
         url: 'https://raw.githubusercontent.com/odia2/Mortar-PUBG/main/Rondo.png',
         bounds: [[0, 0], [2000, 2000]],
-        scale: 2.0  // 4000м / 2000px (Rondo = 4×4 км)
+        scale: 2.0
     }
 };
 
@@ -40,6 +40,7 @@ let markers = [];
 let points = [];
 let polyline = null;
 
+// Время полёта
 function getFlightTime(distance) {
     const projectileSpeed = 110;
     return (distance / projectileSpeed).toFixed(1);
@@ -153,7 +154,7 @@ function updateHUD(distance) {
     document.getElementById('distance').textContent = `${String(distance).padStart(4, '0')} m`;
     const angle = getMortarAngle(distance);
     document.getElementById('angle').textContent = angle !== '--' ? `${angle}°` : '--°';
-onst flightTime = getFlightTime(distance);
+    const flightTime = getFlightTime(distance);
     document.getElementById('flightTime').textContent = `${flightTime} с`;
 }
 
@@ -166,7 +167,7 @@ function resetDistance() {
     points = [];
     document.getElementById('distance').textContent = '0000 m';
     document.getElementById('angle').textContent = '--°';
-    document.getElementById('flightTime').textContent = '-- с';  // ← ДОБАВЬ
+    document.getElementById('flightTime').textContent = '-- с';
     document.getElementById('points').textContent = '0/2';
 }
 
@@ -183,13 +184,7 @@ function clearPoints(reload = true) {
     points = [];
     document.getElementById('distance').textContent = '0000 m';
     document.getElementById('angle').textContent = '--°';
-    document.getElementById('flightTime').textContent = '-- с';  // ← ДОБАВЬ
-    document.getElementById('points').textContent = '0/2';
-}
-    
-    points = [];
-    document.getElementById('distance').textContent = '0000 m';
-    document.getElementById('angle').textContent = '--°';
+    document.getElementById('flightTime').textContent = '-- с';
     document.getElementById('points').textContent = '0/2';
 }
 
