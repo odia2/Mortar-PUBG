@@ -3,34 +3,86 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mortar Calculator - PUBG</title>
+    <title>PUBG Mortar Calculator</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
     <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Rajdhani:wght@400;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
-    <div class="sidebar">
-        <h1>🎯 MORTAR CALCULATOR</h1>
-        <p>Поставь 2 точки на карте для расчёта дистанции</p>
-        
-        <div class="info">
-            <div class="distance" id="distance">Дистанция: 0 м</div>
-            <div class="points" id="points">Точек: 0/2</div>
+    <!-- Верхняя панель -->
+    <header class="control-bar">
+        <div class="logo">
+            <span class="icon">🎯</span>
+            <h1>PUBG MORTAR CALCULATOR</h1>
         </div>
         
-        <button class="clear-btn" onclick="clearPoints()">🗑️ Очистить карту</button>
-        
-        <div class="instructions">
-            <h3>📌 Инструкция:</h3>
-            <ul>
-                <li>Кликни ЛКМ - поставить точку</li>
-                <li>Поставь 2 точки - увидишь расстояние</li>
-                <li>Очисти - начни заново</li>
-            </ul>
+        <div class="controls">
+            <div class="map-selector">
+                <label>🗺️ MAP:</label>
+                <select id="mapSelect" onchange="changeMap()">
+                    <option value="erangel">Erangel (8×8)</option>
+                    <option value="miramar">Miramar (8×8)</option>
+                    <option value="vikendi">Vikendi (6×6)</option>
+                    <option value="taego">Taego (8×8)</option>
+                </select>
+            </div>
+            
+            <button class="btn btn-reset" onclick="resetDistance()">
+                <span>🔄</span> Reset
+            </button>
+            <button class="btn btn-clear" onclick="clearPoints()">
+                <span>🗑️</span> Clear
+            </button>
+            <button class="btn btn-help" onclick="showHelp()">
+                <span>❓</span> Help
+            </button>
+        </div>
+    </header>
+
+    <!-- Карта -->
+    <main class="map-container">
+        <div id="map"></div>
+    </main>
+
+    <!-- HUD панель внизу -->
+    <footer class="hud-panel">
+        <div class="hud-item">
+            <span class="hud-label">DISTANCE</span>
+            <span class="hud-value" id="distance">0000 m</span>
+        </div>
+        <div class="hud-divider"></div>
+        <div class="hud-item">
+            <span class="hud-label">MORTAR ANGLE</span>
+            <span class="hud-value" id="angle">--°</span>
+        </div>
+        <div class="hud-divider"></div>
+        <div class="hud-item">
+            <span class="hud-label">POINTS</span>
+            <span class="hud-value" id="points">0/2</span>
+        </div>
+    </footer>
+
+    <!-- Help Popup -->
+    <div class="popup-overlay" id="helpPopup">
+        <div class="popup">
+            <div class="popup-header">
+                <h2>📌 HOW TO USE</h2>
+                <button class="popup-close" onclick="hideHelp()">✕</button>
+            </div>
+            <div class="popup-content">
+                <ol>
+                    <li>Click on the map to place the <strong>first point</strong></li>
+                    <li>Click again to place the <strong>second point</strong></li>
+                    <li>Distance will be calculated automatically</li>
+                    <li>Use the mortar angle for accurate shots</li>
+                </ol>
+                <div class="popup-tip">
+                    💡 Tip: Press <kbd>R</kbd> to reset, <kbd>C</kbd> to clear, <kbd>H</kbd> for help
+                </div>
+            </div>
         </div>
     </div>
-    
-    <div id="map"></div>
-    
+
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script src="script.js"></script>
 </body>
