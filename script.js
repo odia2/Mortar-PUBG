@@ -1,56 +1,54 @@
-// Инициализация карты без стандартного слоя
+// Инициализация карты
 const map = L.map('map', {
-    minZoom: 1,
-    maxZoom: 4,
+    minZoom: 0,
+    maxZoom: 2,
     crs: L.CRS.Simple,
-    center: [0, 0],
-    zoom: 2
+    center: [634, 634],
+    zoom: 1
 });
 
-// Границы карты (для Erangel)
-const bounds = [[0, 0], [1000, 1000]];
+// Границы карты (из MapTiler)
+const bounds = [[0, 0], [1267, 1269]];
 
-// Вставь имя своего файла карты здесь
-const imageUrl = 'https://raw.githubusercontent.com/odia2/Mortar-PUBG/main/Erangel02.png';
+// ✅ ТВОЯ ССЫЛКА НА ТАЙЛЫ ✅
+const tileUrl = 'https://api.maptiler.com/images/019cf795-21ee-7e4a-8052-3ba1ae27e7a7/{z}/{x}/{y}?key=GuCzTv8oUo5qv49dEVwb';
 
-L.imageOverlay(imageUrl, bounds).addTo(map);
+// Добавляем тайлы
+L.tileLayer(tileUrl, {
+    minZoom: 0,
+    maxZoom: 2,
+    tileSize: 512,
+    tms: false,
+    attribution: 'PUBG Erangel'
+}).addTo(map);
 
-// Ограничиваем карту границами
+// Ограничиваем карту
 map.setMaxBounds(bounds);
 
-// Хранилище для маркеров
+// Маркеры
 let markers = [];
 let points = [];
 
-// Функция расчёта расстояния
+// Расчёт расстояния
 function calculateDistance(lat1, lon1, lat2, lon2) {
-    const R = 6371000;
-    const φ1 = lat1 * Math.PI / 180;
-    const φ2 = lat2 * Math.PI / 180;
-    const Δφ = (lat2 - lat1) * Math.PI / 180;
-    const Δλ = (lon2 - lon1) * Math.PI / 180;
-
-    const a = Math.sin(Δφ/2) * Math.sin(Δφ/2) +
-              Math.cos(φ1) * Math.cos(φ2) *
-              Math.sin(Δλ/2) * Math.sin(Δλ/2);
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-
-    return Math.round((R * c) / 100);
+    const dx = lon2 - lon1;
+    const dy = lat2 - lat1;
+    const distance = Math.sqrt(dx * dx + dy * dy);
+    
+    // Erangel 8км / 1267px ≈ 6.31 м на пиксель
+    return Math.round(distance * 6.31);
 }
 
-// Обработка клика по карте
+// Клик по карте
 map.on('click', function(e) {
     if (points.length >= 2) {
-        alert('Уже стоит 2 точки! Нажми "Очистить карту" чтобы начать заново.');
+        alert('Уже 2 точки! Нажми "Очистить" для сброса.');
         return;
     }
     
-    const lat = e.latlng.lat;
-    const lng = e.latlng.lng;
-    
-    const marker = L.marker([lat, lng]).addTo(map);
+    const marker = L.marker([e.latlng.lat, e.latlng.lng]).addTo(map);
     markers.push(marker);
-    points.push({lat, lng});
+    points.push({lat: e.latlng.lat, lng: e.latlng.lng});
     
     document.getElementById('points').textContent = `Точек: ${points.length}/2`;
     
@@ -59,20 +57,18 @@ map.on('click', function(e) {
                                           points[1].lat, points[1].lng);
         document.getElementById('distance').textContent = `Дистанция: ${distance} м`;
         
-        const polyline = L.polyline(points.map(p => [p.lat, p.lng]), {
+        L.polyline(points.map(p => [p.lat, p.lng]), {
             color: 'red',
             weight: 3,
             opacity: 0.8,
             dashArray: '10, 10'
-        }).addTo(map);
-        
-        polyline.bindPopup(`<b>Дистанция:</b> ${distance} м`).openPopup();
+        }).addTo(map).bindPopup(`<b>Дистанция:</b> ${distance} м`).openPopup();
     }
 });
 
-// Очистка карты
+// Очистка
 function clearPoints() {
-    markers.forEach(marker => map.removeLayer(marker));
+    markers.forEach(m => map.removeLayer(m));
     markers = [];
     points = [];
     location.reload();
