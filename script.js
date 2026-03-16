@@ -1,10 +1,11 @@
 // Конфигурация карт
 const maps = {
+
     erangel: {
-        url: 'https://raw.githubusercontent.com/odia2/Mortar-PUBG/main/Erangel_2000x2000.png',
-        bounds: [[0, 0], [2000, 2000]],
-        scale: 4.0
-    },
+    url: 'https://raw.githubusercontent.com/odia2/Mortar-PUBG/main/Pubg_maps/Erangel_2000x2000.png',
+    bounds: [[0, 0], [2000, 2000]],
+    scale: 4.0
+},
    
     miramar: {
         url: 'https://raw.githubusercontent.com/odia2/Mortar-PUBG/main/Miramar.png',
