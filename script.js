@@ -11,7 +11,7 @@ const map = L.map('map', {
 const bounds = [[0, 0], [1267, 1269]];
 
 // ✅ ТВОЯ ССЫЛКА НА ТАЙЛЫ ✅
-const tileUrl = 'https://api.maptiler.com/images/019cf795-21ee-7e4a-8052-3ba1ae27e7a7/{z}/{x}/{y}?key=GuCzTv8oUo5qv49dEVwb';
+const tileUrl = 'https://api.maptiler.com/tiles/019cf795-21ee-7e4a-8052-3ba1ae27e7a7/{z}/{x}/{y}.webp?key=GuCzTv8oUo5qv49dEVwb';
 
 // Добавляем тайлы
 L.tileLayer(tileUrl, {
