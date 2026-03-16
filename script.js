@@ -1,26 +1,29 @@
-// Конфигурация карт
+// Конфигурация всех карт
 const maps = {
-
     erangel: {
-    url: 'https://raw.githubusercontent.com/odia2/Mortar-PUBG/main/Pubg_maps/Erangel_2000x2000.png',
-    bounds: [[0, 0], [2000, 2000]],
-    scale: 4.0
-},
-   
+        url: 'https://raw.githubusercontent.com/odia2/Mortar-PUBG/main/Pubg_maps/Erangel_2000x2000.png',
+        bounds: [[0, 0], [2000, 2000]],
+        scale: 4.0  // 8000м / 2000px
+    },
     miramar: {
-        url: 'https://raw.githubusercontent.com/odia2/Mortar-PUBG/main/Miramar.png',
-        bounds: [[0, 0], [1267, 1269]],
-        scale: 6.31
+        url: 'https://raw.githubusercontent.com/odia2/Mortar-PUBG/main/Miramar_2000x2000.png',
+        bounds: [[0, 0], [2000, 2000]],
+        scale: 4.0  // 8000м / 2000px
     },
     vikendi: {
-        url: 'https://raw.githubusercontent.com/odia2/Mortar-PUBG/main/Vikendi.png',
-        bounds: [[0, 0], [950, 950]],
-        scale: 6.32
+        url: 'https://raw.githubusercontent.com/odia2/Mortar-PUBG/main/Vikendi_2000x2000.png',
+        bounds: [[0, 0], [2000, 2000]],
+        scale: 3.0  // 6000м / 2000px
     },
     taego: {
-        url: 'https://raw.githubusercontent.com/odia2/Mortar-PUBG/main/Taego.png',
-        bounds: [[0, 0], [1267, 1269]],
-        scale: 6.31
+        url: 'https://raw.githubusercontent.com/odia2/Mortar-PUBG/main/Taego_2000x2000.png',
+        bounds: [[0, 0], [2000, 2000]],
+        scale: 4.0  // 8000м / 2000px
+    },
+    deston: {
+        url: 'https://raw.githubusercontent.com/odia2/Mortar-PUBG/main/Deston_2000x2000.png',
+        bounds: [[0, 0], [2000, 2000]],
+        scale: 4.0  // 8000м / 2000px
     }
 };
 
@@ -54,17 +57,15 @@ function getMortarAngle(distance) {
     return 5;
 }
 
-// Инициализация карты (ТВОЯ ЛОГИКА)
+// Инициализация карты
 function initMap() {
     map = L.map('map', {
         minZoom: 1,
         maxZoom: 4,
         crs: L.CRS.Simple,
-        center: [1000, 1000],  // ← Половина от 2000
+        center: [1000, 1000],
         zoom: 2
     });
-    // ...
-}
     
     loadMap('erangel');
     map.on('click', handleMapClick);
@@ -87,13 +88,13 @@ function loadMap(mapName) {
     clearPoints(false);
 }
 
-// Смена карты
+// Смена мапф
 function changeMap() {
     const select = document.getElementById('mapSelect');
     loadMap(select.value);
 }
 
-// Клик по карте (ТВОЯ ЛОГИКА + улучшения)
+// Клик по карте
 function handleMapClick(e) {
     if (points.length >= 2) {
         alert('Уже 2 точки! Нажми "Clear" для сброса.');
@@ -113,7 +114,7 @@ function handleMapClick(e) {
     }
 }
 
-// Расчёт расстояния (ТВОЯ ФОРМУЛА)
+// Расчёт расстояния
 function calculateDistance() {
     const dx = points[1].lng - points[0].lng;
     const dy = points[1].lat - points[0].lat;
@@ -121,7 +122,7 @@ function calculateDistance() {
     return Math.round(distance * maps[currentMap].scale);
 }
 
-// Отрисовка линии (ТВОЯ ЛОГИКА + метка)
+// Отрисовка линии
 function drawLine(distance) {
     if (polyline) {
         map.removeLayer(polyline);
@@ -156,7 +157,7 @@ function resetDistance() {
     document.getElementById('points').textContent = '0/2';
 }
 
-// Очистка точек (ТВОЯ ЛОГИКА)
+// Очистка точек
 function clearPoints(reload = true) {
     markers.forEach(m => map.removeLayer(m));
     markers = [];
