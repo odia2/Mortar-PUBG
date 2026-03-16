@@ -11,7 +11,7 @@ const map = L.map('map', {
 const bounds = [[0, 0], [1000, 1000]];
 
 // Вставь имя своего файла карты здесь
-const imageUrl = 'Erangel02.ppg';
+const imageUrl = 'Erangel02.png';
 
 L.imageOverlay(imageUrl, bounds).addTo(map);
 
