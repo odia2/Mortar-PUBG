@@ -1,7 +1,7 @@
 // Конфигурация всех карт
 const maps = {
     erangel: {
-        url: 'https://raw.githubusercontent.com/odia2/Mortar-PUBG/main/Pubg_maps/Erangel_2000x2000.png',
+        url: 'https://raw.githubusercontent.com/odia2/Mortar-PUBG/main/Erangel_2000x2000.png',
         bounds: [[0, 0], [2000, 2000]],
         scale: 4.0  // 8000м / 2000px
     },
@@ -11,17 +11,17 @@ const maps = {
         scale: 4.0  // 8000м / 2000px
     },
     vikendi: {
-        url: 'https://raw.githubusercontent.com/odia2/Mortar-PUBG/main/Vikendi_2000x2000.png',
+        url: 'https://raw.githubusercontent.com/odia2/Mortar-PUBG/main/Vikendi.png',
         bounds: [[0, 0], [2000, 2000]],
         scale: 3.0  // 6000м / 2000px
     },
     taego: {
-        url: 'https://raw.githubusercontent.com/odia2/Mortar-PUBG/main/Taego_2000x2000.png',
+        url: 'https://raw.githubusercontent.com/odia2/Mortar-PUBG/main/Taego_Main_2000x2000.png',
         bounds: [[0, 0], [2000, 2000]],
         scale: 4.0  // 8000м / 2000px
     },
     deston: {
-        url: 'https://raw.githubusercontent.com/odia2/Mortar-PUBG/main/Deston_2000x2000.png',
+        url: 'https://raw.githubusercontent.com/odia2/Mortar-PUBG/main/Deston_Main_High_Res-2000x2000.png',
         bounds: [[0, 0], [2000, 2000]],
         scale: 4.0  // 8000м / 2000px
     }
@@ -88,7 +88,7 @@ function loadMap(mapName) {
     clearPoints(false);
 }
 
-// Смена мапф
+// Смена карты
 function changeMap() {
     const select = document.getElementById('mapSelect');
     loadMap(select.value);
