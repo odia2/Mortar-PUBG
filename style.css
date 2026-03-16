@@ -5,16 +5,46 @@
 }
 
 :root {
+    /* Dark Theme (default) */
     --bg-primary: #111111;
     --bg-secondary: #1f1f1f;
     --bg-panel: rgba(31, 31, 31, 0.95);
+    --bg-header: #1a1a1a;
     --accent: #ff3b3b;
     --accent-glow: rgba(255, 59, 59, 0.5);
     --text-primary: #ffffff;
     --text-secondary: #a0a0a0;
     --border: #333333;
+    --success: #00ff88;
+    --success-glow: rgba(0, 255, 136, 0.5);
+    --warning: #ffaa00;
+    --error: #ff4444;
     --font-heading: 'Orbitron', sans-serif;
     --font-body: 'Rajdhani', sans-serif;
+    --hud-bg: rgba(31, 31, 31, 0.95);
+    --hud-border: #ff3b3b;
+    --button-reset: linear-gradient(135deg, #667eea, #764ba2);
+    --button-clear: linear-gradient(135deg, #f093fb, #f5576c);
+    --button-help: linear-gradient(135deg, #4facfe, #00f2fe);
+}
+
+[data-theme="light"] {
+    --bg-primary: #ECECEC;
+    --bg-secondary: #ffffff;
+    --bg-panel: rgba(255, 255, 255, 0.95);
+    --bg-header: #f5f5f5;
+    --accent: #ff3b3b;
+    --accent-glow: rgba(255, 59, 59, 0.3);
+    --text-primary: #1a1a1a;
+    --text-secondary: #666666;
+    --border: #cccccc;
+    --success: #00aa55;
+    --success-glow: rgba(0, 170, 85, 0.3);
+    --hud-bg: rgba(255, 255, 255, 0.95);
+    --hud-border: #ff3b3b;
+    --button-reset: linear-gradient(135deg, #5566dd, #6655aa);
+    --button-clear: linear-gradient(135deg, #ee7799, #dd4455);
+    --button-help: linear-gradient(135deg, #3399ee, #00ccff);
 }
 
 body {
@@ -25,6 +55,7 @@ body {
     overflow: hidden;
     display: flex;
     flex-direction: column;
+    transition: background 0.3s ease, color 0.3s ease;
 }
 
 /* CONTROL BAR */
@@ -33,10 +64,11 @@ body {
     justify-content: space-between;
     align-items: center;
     padding: 15px 25px;
-    background: var(--bg-secondary);
+    background: var(--bg-header);
     border-bottom: 2px solid var(--accent);
     box-shadow: 0 4px 20px var(--accent-glow);
     z-index: 1000;
+    transition: background 0.3s ease;
 }
 
 .logo {
@@ -64,6 +96,75 @@ body {
     gap: 15px;
 }
 
+/* TOGGLE SWITCHES */
+.mode-toggle, .theme-toggle {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.mode-label, .theme-label {
+    font-weight: 600;
+    color: var(--text-secondary);
+    font-size: 12px;
+}
+
+.mode-text {
+    font-weight: 700;
+    font-size: 12px;
+    min-width: 70px;
+}
+
+.switch {
+    position: relative;
+    display: inline-block;
+    width: 50px;
+    height: 24px;
+}
+
+.switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: var(--border);
+    transition: 0.3s;
+    border-radius: 24px;
+}
+
+.slider:before {
+    position: absolute;
+    content: "";
+    height: 18px;
+    width: 18px;
+    left: 3px;
+    bottom: 3px;
+    background-color: var(--text-primary);
+    transition: 0.3s;
+    border-radius: 50%;
+}
+
+input:checked + .slider {
+    background-color: var(--accent);
+}
+
+input:checked + .slider:before {
+    transform: translateX(26px);
+}
+
+.theme-icon {
+    font-size: 18px;
+}
+
+/* MAP SELECTOR */
 .map-selector {
     display: flex;
     align-items: center;
@@ -119,23 +220,27 @@ body {
 }
 
 .btn-reset {
-    background: linear-gradient(135deg, #667eea, #764ba2);
+    background: var(--button-reset);
     color: white;
 }
 
 .btn-clear {
-    background: linear-gradient(135deg, #f093fb, #f5576c);
+    background: var(--button-clear);
     color: white;
 }
 
 .btn-help {
-    background: linear-gradient(135deg, #4facfe, #00f2fe);
+    background: var(--button-help);
     color: white;
 }
 
 .btn:hover {
     transform: scale(1.05);
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+}
+
+.btn:active {
+    transform: scale(0.98);
 }
 
 /* MAP CONTAINER */
@@ -159,12 +264,13 @@ body {
     display: flex;
     justify-content: center;
     align-items: center;
-    gap: 40px;
+    gap: 30px;
     padding: 20px 40px;
-    background: var(--bg-panel);
-    border-top: 2px solid var(--accent);
+    background: var(--hud-bg);
+    border-top: 2px solid var(--hud-border);
     box-shadow: 0 -4px 20px var(--accent-glow);
     z-index: 1000;
+    transition: background 0.3s ease;
 }
 
 .hud-item {
@@ -175,7 +281,7 @@ body {
 }
 
 .hud-label {
-    font-size: 12px;
+    font-size: 11px;
     color: var(--text-secondary);
     letter-spacing: 2px;
     text-transform: uppercase;
@@ -183,11 +289,11 @@ body {
 
 .hud-value {
     font-family: var(--font-heading);
-    font-size: 32px;
+    font-size: 28px;
     font-weight: 700;
     color: var(--accent);
     text-shadow: 0 0 10px var(--accent-glow);
-    min-width: 120px;
+    min-width: 100px;
     text-align: center;
 }
 
@@ -221,7 +327,7 @@ body {
     border: 2px solid var(--accent);
     border-radius: 12px;
     width: 90%;
-    max-width: 500px;
+    max-width: 550px;
     box-shadow: 0 0 30px var(--accent-glow);
     animation: popupIn 0.3s ease;
 }
@@ -268,6 +374,16 @@ body {
     padding: 25px;
 }
 
+.popup-content h3 {
+    color: var(--accent);
+    margin: 15px 0 10px 0;
+    font-size: 16px;
+}
+
+.popup-content h3:first-child {
+    margin-top: 0;
+}
+
 .popup-content ol {
     margin-left: 20px;
     line-height: 2;
@@ -275,7 +391,7 @@ body {
 }
 
 .popup-content li {
-    margin-bottom: 10px;
+    margin-bottom: 8px;
 }
 
 .popup-content strong {
@@ -309,9 +425,21 @@ body {
     }
 }
 
+@keyframes circleAppear {
+    from {
+        opacity: 0;
+        transform: scale(0);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
 /* LEAFLET CUSTOM */
 .leaflet-marker-icon {
     filter: drop-shadow(0 0 5px var(--accent));
+    transition: all 0.3s ease;
 }
 
 .leaflet-popup-content-wrapper {
@@ -327,4 +455,33 @@ body {
 .leaflet-popup-content {
     color: var(--text-primary);
     font-family: var(--font-body);
+}
+
+/* CIRCLE ANIMATIONS */
+.leaflet-circle {
+    animation: circleAppear 0.5s ease;
+}
+
+/* RESPONSIVE */
+@media (max-width: 1200px) {
+    .control-bar {
+        flex-direction: column;
+        gap: 15px;
+        padding: 15px;
+    }
+    
+    .controls {
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+    
+    .hud-panel {
+        gap: 20px;
+        padding: 15px 20px;
+        flex-wrap: wrap;
+    }
+    
+    .hud-value {
+        font-size: 24px;
+    }
 }
