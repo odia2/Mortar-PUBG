@@ -60,11 +60,11 @@ function getMortarAngle(distance) {
 // Инициализация карты
 function initMap() {
     map = L.map('map', {
-        minZoom: 1,
+        minZoom: 0,
         maxZoom: 4,
         crs: L.CRS.Simple,
         center: [1000, 1000],
-        zoom: 2
+        zoom: 1
     });
     
     loadMap('erangel');
