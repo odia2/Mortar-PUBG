@@ -57,8 +57,8 @@ let polyline = null;
 let mortarCircleMin = null;
 let mortarCircleMax = null;
 let mortarPosition = null;
-let mortarElevation = 0;  // ← НОВОЕ: угол возвышения
-let elevationPopup = null;  // ← НОВОЕ: попап высоты
+let mortarElevation = 0;
+let elevationPopup = null;
 
 // Иконки
 const mortarIcon = L.divIcon({
@@ -94,7 +94,7 @@ function initMap() {
     
     loadMap('erangel');
     map.on('click', handleMapClick);
-    map.on('dblclick', handleMapDoubleClick);  // ← ДОБАВЛЕНО
+    map.on('dblclick', handleMapDoubleClick);
     document.addEventListener('keydown', handleKeyboard);
     loadTheme();
     initPopupDrag();
@@ -153,7 +153,7 @@ function initPopupDrag() {
     });
 }
 
-// ← НОВАЯ ФУНКЦИЯ: Двойной клик по миномёту (регулировка высоты)
+// Двойной клик по миномёту (регулировка высоты)
 function handleMapDoubleClick(e) {
     if (!mortarMode || points.length === 0 || points[0].type !== 'mortar') return;
     
@@ -200,7 +200,7 @@ function handleMapDoubleClick(e) {
     });
 }
 
-// ← НОВАЯ ФУНКЦИЯ: Регулировка высоты
+// Регулировка высоты
 function adjustElevation(change) {
     if (change === 0) {
         mortarElevation = 0;
@@ -443,7 +443,6 @@ function updateHUD(distance) {
     document.getElementById('flightTime').textContent = `${flightTime} с`;
     document.getElementById('shellRadius').textContent = `${MORTAR_CONFIG.shellRadius} м`;
     
-    // ← ДОБАВЛЕНО: отображение высоты в HUD
     const elevationDisplay = mortarElevation >= 0 ? `+${mortarElevation}°` : `${mortarElevation}°`;
     const elevationEl = document.getElementById('elevation');
     if (elevationEl) {
@@ -488,7 +487,7 @@ function resetDistance() {
         polyline = null;
     }
     points = [];
-    mortarElevation = 0;  // ← ДОБАВЛЕНО
+    mortarElevation = 0;
     document.getElementById('distance').textContent = '0000 m';
     document.getElementById('angle').textContent = '--°';
     document.getElementById('flightTime').textContent = '-- с';
@@ -508,7 +507,7 @@ function clearPoints(reload = true) {
     }
     removeCircles();
     mortarPosition = null;
-    mortarElevation = 0;  // ← ДОБАВЛЕНО
+    mortarElevation = 0;
     points = [];
     document.getElementById('distance').textContent = '0000 m';
     document.getElementById('angle').textContent = '--°';
