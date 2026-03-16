@@ -1,28 +1,25 @@
 // Инициализация карты
 const map = L.map('map', {
-    minZoom: 0,
-    maxZoom: 3,
+    minZoom: 1,
+    maxZoom: 4,
     crs: L.CRS.Simple,
-    center: [634, 634],
-    zoom: 2  // ✅ Увеличил начальный зум
+    center: [0, 0],
+    zoom: 1
 });
 
 // Границы карты
 const bounds = [[0, 0], [1267, 1269]];
 
-// Тайлы из GitHub
-L.tileLayer('PUBG_Erangel_Remaster/{z}/{x}/{y}.png', {
-    minZoom: 0,
-    maxZoom: 3,
-    tileSize: 256,
-    noWrap: true,
-    attribution: 'PUBG Erangel'
-}).addTo(map);
+// Прямая ссылка на твою карту (не тайлы!)
+const imageUrl = 'https://raw.githubusercontent.com/odia2/Mortar-PUBG/main/PUBG_Erangel_Remaster.png';
+
+// Добавляем изображение
+L.imageOverlay(imageUrl, bounds).addTo(map);
 
 // Ограничиваем карту
 map.setMaxBounds(bounds);
 
-// Центрируем карту при загрузке
+// Центрируем
 map.fitBounds(bounds);
 
 // Маркеры
