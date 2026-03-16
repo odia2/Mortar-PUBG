@@ -1,28 +1,24 @@
 // Инициализация карты
 const map = L.map('map', {
     minZoom: 0,
-    maxZoom: 2,
+    maxZoom: 3,
     crs: L.CRS.Simple,
-    center: [634, 634],
+    center: [0, 0],
     zoom: 1
 });
 
-// Границы карты (из MapTiler)
+// Границы карты
 const bounds = [[0, 0], [1267, 1269]];
 
-// ✅ ТВОЯ ССЫЛКА НА ТАЙЛЫ ✅
-const tileUrl = 'https://api.maptiler.com/tiles/019cf795-21ee-7e4a-8052-3ba1ae27e7a7/{z}/{x}/{y}.webp?key=GuCzTv8oUo5qv49dEVwb';
-
-// Добавляем тайлы
+// Тайлы из GitHub ✅
 L.tileLayer('PUBG_Erangel_Remaster/{z}/{x}/{y}.png', {
     minZoom: 0,
-    maxZoom: 2,
+    maxZoom: 3,
     tileSize: 256,
-    tms: false,
+    noWrap: true,
     attribution: 'PUBG Erangel'
 }).addTo(map);
 
-// Ограничиваем карту
 map.setMaxBounds(bounds);
 
 // Маркеры
@@ -35,7 +31,6 @@ function calculateDistance(lat1, lon1, lat2, lon2) {
     const dy = lat2 - lat1;
     const distance = Math.sqrt(dx * dx + dy * dy);
     
-    // Erangel 8км / 1267px ≈ 6.31 м на пиксель
     return Math.round(distance * 6.31);
 }
 
