@@ -166,6 +166,7 @@ function resetDistance() {
     points = [];
     document.getElementById('distance').textContent = '0000 m';
     document.getElementById('angle').textContent = '--°';
+    document.getElementById('flightTime').textContent = '-- с';  // ← ДОБАВЬ
     document.getElementById('points').textContent = '0/2';
 }
 
@@ -178,6 +179,13 @@ function clearPoints(reload = true) {
         map.removeLayer(polyline);
         polyline = null;
     }
+    
+    points = [];
+    document.getElementById('distance').textContent = '0000 m';
+    document.getElementById('angle').textContent = '--°';
+    document.getElementById('flightTime').textContent = '-- с';  // ← ДОБАВЬ
+    document.getElementById('points').textContent = '0/2';
+}
     
     points = [];
     document.getElementById('distance').textContent = '0000 m';
