@@ -40,6 +40,11 @@ let markers = [];
 let points = [];
 let polyline = null;
 
+function getFlightTime(distance) {
+    const projectileSpeed = 110;
+    return (distance / projectileSpeed).toFixed(1);
+}
+
 // Таблица углов миномёта
 function getMortarAngle(distance) {
     if (distance < 100) return '--';
@@ -148,6 +153,8 @@ function updateHUD(distance) {
     document.getElementById('distance').textContent = `${String(distance).padStart(4, '0')} m`;
     const angle = getMortarAngle(distance);
     document.getElementById('angle').textContent = angle !== '--' ? `${angle}°` : '--°';
+onst flightTime = getFlightTime(distance);
+    document.getElementById('flightTime').textContent = `${flightTime} с`;
 }
 
 // Сброс дистанции
