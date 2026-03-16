@@ -17,7 +17,7 @@ const tileUrl = 'https://api.maptiler.com/tiles/019cf795-21ee-7e4a-8052-3ba1ae27
 L.tileLayer('PUBG_Erangel_Remaster/{z}/{x}/{y}.png', {
     minZoom: 0,
     maxZoom: 2,
-    tileSize: 512,
+    tileSize: 256,
     tms: false,
     attribution: 'PUBG Erangel'
 }).addTo(map);
