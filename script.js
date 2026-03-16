@@ -1,18 +1,30 @@
-// Инициализация карты (координаты центра Erangel)
-const map = L.map('map').setView([41.3, 130.4], 10);
+// Инициализация карты без стандартного слоя
+const map = L.map('map', {
+    minZoom: 1,
+    maxZoom: 4,
+    crs: L.CRS.Simple,
+    center: [0, 0],
+    zoom: 2
+});
 
-// Добавляем слой карты (OpenStreetMap)
-L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    attribution: '© OpenStreetMap contributors'
-}).addTo(map);
+// Границы карты (для Erangel)
+const bounds = [[0, 0], [1000, 1000]];
+
+// Вставь имя своего файла карты здесь
+const imageUrl = 'Erangel02.ppg';
+
+L.imageOverlay(imageUrl, bounds).addTo(map);
+
+// Ограничиваем карту границами
+map.setMaxBounds(bounds);
 
 // Хранилище для маркеров
 let markers = [];
 let points = [];
 
-// Функция расчёта расстояния между двумя точками (формула Haversine)
+// Функция расчёта расстояния
 function calculateDistance(lat1, lon1, lat2, lon2) {
-    const R = 6371000; // Радиус Земли в метрах
+    const R = 6371000;
     const φ1 = lat1 * Math.PI / 180;
     const φ2 = lat2 * Math.PI / 180;
     const Δφ = (lat2 - lat1) * Math.PI / 180;
@@ -23,7 +35,7 @@ function calculateDistance(lat1, lon1, lat2, lon2) {
               Math.sin(Δλ/2) * Math.sin(Δλ/2);
     const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
 
-    return Math.round(R * c); // Расстояние в метрах
+    return Math.round((R * c) / 100);
 }
 
 // Обработка клика по карте
@@ -36,21 +48,17 @@ map.on('click', function(e) {
     const lat = e.latlng.lat;
     const lng = e.latlng.lng;
     
-    // Добавляем маркер
     const marker = L.marker([lat, lng]).addTo(map);
     markers.push(marker);
     points.push({lat, lng});
     
-    // Обновляем счётчик
     document.getElementById('points').textContent = `Точек: ${points.length}/2`;
     
-    // Если 2 точки - считаем расстояние
     if (points.length === 2) {
         const distance = calculateDistance(points[0].lat, points[0].lng, 
                                           points[1].lat, points[1].lng);
         document.getElementById('distance').textContent = `Дистанция: ${distance} м`;
         
-        // Рисуем линию между точками
         const polyline = L.polyline(points.map(p => [p.lat, p.lng]), {
             color: 'red',
             weight: 3,
@@ -58,25 +66,14 @@ map.on('click', function(e) {
             dashArray: '10, 10'
         }).addTo(map);
         
-        // Показываем всплывающее окно с дистанцией
         polyline.bindPopup(`<b>Дистанция:</b> ${distance} м`).openPopup();
     }
 });
 
 // Очистка карты
 function clearPoints() {
-    // Удаляем все маркеры
     markers.forEach(marker => map.removeLayer(marker));
     markers = [];
     points = [];
-    
-    // Перезагружаем страницу для удаления линий
     location.reload();
 }
-
-// Добавляем информацию о текущей позиции
-map.on('mousemove', function(e) {
-    const lat = e.latlng.lat.toFixed(4);
-    const lng = e.latlng.lng.toFixed(4);
-    document.title = `Mortar Calculator - ${lat}, ${lng}`;
-});
