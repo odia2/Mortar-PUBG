@@ -14,7 +14,7 @@ const bounds = [[0, 0], [1267, 1269]];
 const tileUrl = 'https://api.maptiler.com/tiles/019cf795-21ee-7e4a-8052-3ba1ae27e7a7/{z}/{x}/{y}.webp?key=GuCzTv8oUo5qv49dEVwb';
 
 // Добавляем тайлы
-L.tileLayer(tileUrl, {
+L.tileLayer('PUBG_Erangel_Remaster/{z}/{x}/{y}.png', {
     minZoom: 0,
     maxZoom: 2,
     tileSize: 512,
