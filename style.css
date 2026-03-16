@@ -8,6 +8,7 @@ body {
     display: flex;
     height: 100vh;
     overflow: hidden;
+    font-family: Arial, sans-serif;
 }
 
 .sidebar {
@@ -15,12 +16,59 @@ body {
     background: linear-gradient(135deg, #1e3c72, #2a5298);
     color: white;
     padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.sidebar h1 {
+    font-size: 24px;
+    text-align: center;
+}
+
+.info {
+    background: rgba(255,255,255,0.1);
+    padding: 15px;
+    border-radius: 10px;
+    text-align: center;
+}
+
+.distance {
+    font-size: 24px;
+    font-weight: bold;
+}
+
+.clear-btn {
+    background: #e74c3c;
+    color: white;
+    border: none;
+    padding: 15px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 16px;
+}
+
+.clear-btn:hover {
+    background: #c0392b;
+}
+
+.instructions {
+    background: rgba(255,255,255,0.1);
+    padding: 15px;
+    border-radius: 10px;
+}
+
+.instructions ul {
+    list-style: none;
+}
+
+.instructions li {
+    padding: 5px 0;
 }
 
 #map {
     flex: 1;
     height: 100vh;
-    width: 100%;
 }
 
 .leaflet-container {
