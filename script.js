@@ -46,12 +46,6 @@ const MORTAR_CONFIG = {
     projectileSpeed: 110
 };
 
-// Настройки рисования
-const DRAW_CONFIG = {
-    tools: ['freehand', 'line', 'arrow', 'circle', 'square', 'text', 'eraser'],
-    colors: ['#ff3b3b', '#00ff88', '#4facfe', '#ffaa00', '#ffffff']
-};
-
 // Глобальные переменные
 let currentMap = 'erangel';
 let mortarMode = false;
@@ -66,8 +60,6 @@ let polyline = null;
 let mortarCircleMin = null;
 let mortarCircleMax = null;
 let mortarPosition = null;
-
-// Переменные для рисования
 let drawingLayers = [];
 let isDrawing = false;
 let drawStart = null;
@@ -117,38 +109,30 @@ function initMap() {
 
 // ===== DRAWING FUNCTIONS =====
 
-// Переключение панели рисования
 function toggleDrawPanel() {
     const panel = document.getElementById('drawPanel');
+    if (!panel) return;
+    
     panel.classList.toggle('active');
     drawMode = panel.classList.contains('active');
     
     if (drawMode) {
-        // ОТКЛЮЧИТЬ перетаскивание карты при рисовании
         map.dragging.disable();
         map.touchZoom.disable();
         map.doubleClickZoom.disable();
         map.scrollWheelZoom.disable();
-        
-        map.getContainer().classList.add('leaflet-drawing');
         map.getContainer().style.cursor = 'crosshair';
     } else {
-        // ВКЛЮЧИТЬ перетаскивание обратно
         map.dragging.enable();
         map.touchZoom.enable();
         map.doubleClickZoom.enable();
         map.scrollWheelZoom.enable();
-        
-        map.getContainer().classList.remove('leaflet-drawing');
         map.getContainer().style.cursor = '';
     }
 }
 
-// Выбор инструмента
 function selectTool(tool) {
     currentTool = tool;
-    
-    // Обновляем активную кнопку
     document.querySelectorAll('.tool-btn').forEach(btn => {
         btn.classList.remove('active');
         if (btn.dataset.tool === tool) {
@@ -156,20 +140,14 @@ function selectTool(tool) {
         }
     });
     
-    // Показываем input для текста
     const textInput = document.getElementById('textInputContainer');
-    if (tool === 'text') {
-        textInput.style.display = 'flex';
-        document.getElementById('textInput').focus();
-    } else {
-        textInput.style.display = 'none';
+    if (textInput) {
+        textInput.style.display = tool === 'text' ? 'flex' : 'none';
     }
 }
 
-// Выбор цвета
 function selectColor(color) {
     currentColor = color;
-    
     document.querySelectorAll('.color-btn').forEach(btn => {
         btn.classList.remove('active');
         if (btn.dataset.color === color) {
@@ -178,13 +156,8 @@ function selectColor(color) {
     });
 }
 
-// Начало рисования
 function handleDrawStart(e) {
     if (!drawMode || isDrawing) return;
-    
-    // ← Предотвратить перетаскивание карты
-    e.originalEvent.stopPropagation();
-    
     isDrawing = true;
     drawStart = e.latlng;
     
@@ -192,12 +165,11 @@ function handleDrawStart(e) {
         freehandPoints = [e.latlng];
         tempLayer = L.polyline(freehandPoints, {
             color: currentColor,
-            weight: 3,
-            smoothFactor: 1
+            weight: 3
         }).addTo(map);
     }
+}
 
-// Движение при рисовании
 function handleDrawMove(e) {
     if (!drawMode || !isDrawing || !drawStart) return;
     
@@ -205,12 +177,6 @@ function handleDrawMove(e) {
         freehandPoints.push(e.latlng);
         tempLayer.setLatLngs(freehandPoints);
     } else if (currentTool === 'line') {
-        if (tempLayer) map.removeLayer(tempLayer);
-        tempLayer = L.polyline([drawStart, e.latlng], {
-            color: currentColor,
-            weight: 3
-        }).addTo(map);
-    } else if (currentTool === 'arrow') {
         if (tempLayer) map.removeLayer(tempLayer);
         tempLayer = L.polyline([drawStart, e.latlng], {
             color: currentColor,
@@ -228,11 +194,10 @@ function handleDrawMove(e) {
         }).addTo(map);
     } else if (currentTool === 'square') {
         if (tempLayer) map.removeLayer(tempLayer);
-        const bounds = [
+        tempLayer = L.rectangle([
             [drawStart.lat, drawStart.lng],
             [e.latlng.lat, e.latlng.lng]
-        ];
-        tempLayer = L.rectangle(bounds, {
+        ], {
             color: currentColor,
             fillColor: currentColor,
             fillOpacity: 0.2,
@@ -241,20 +206,12 @@ function handleDrawMove(e) {
     }
 }
 
-// Конец рисования
 function handleDrawEnd(e) {
     if (!drawMode || !isDrawing) return;
-    
     isDrawing = false;
     
     if (tempLayer) {
         drawingLayers.push(tempLayer);
-        
-        // Добавляем стрелку для arrow инструмента
-        if (currentTool === 'arrow') {
-            addArrowHead(drawStart, e.latlng);
-        }
-        
         tempLayer = null;
     }
     
@@ -262,75 +219,50 @@ function handleDrawEnd(e) {
     freehandPoints = [];
 }
 
-// Добавление стрелки
-function addArrowHead(start, end) {
-    const angle = Math.atan2(end.lat - start.lat, end.lng - start.lng);
-    const arrowLength = 50 / maps[currentMap].scale;
-    
-    const arrowLeft = {
-        lat: end.lat - arrowLength * Math.cos(angle - Math.PI / 6),
-        lng: end.lng - arrowLength * Math.sin(angle - Math.PI / 6)
-    };
-    
-    const arrowRight = {
-        lat: end.lat - arrowLength * Math.cos(angle + Math.PI / 6),
-        lng: end.lng - arrowLength * Math.sin(angle + Math.PI / 6)
-    };
-    
-    const arrowLayer = L.polyline([end, arrowLeft, end, arrowRight], {
-        color: currentColor,
-        weight: 3
-    }).addTo(map);
-    
-    drawingLayers.push(arrowLayer);
-}
-
-// Добавление текста
 function addText() {
     const textInput = document.getElementById('textInput');
-    const text = textInput.value.trim();
-    
+    const text = textInput ? textInput.value.trim() : '';
     if (!text || !drawStart) return;
     
     const textMarker = L.marker(drawStart, {
         icon: L.divIcon({
             className: 'leaflet-text-marker',
-            html: `<div class="text-content" style="color: ${currentColor};">${text}</div>`,
+            html: `<div style="background: rgba(0,0,0,0.7); color: ${currentColor}; padding: 5px 10px; border-radius: 4px; font-size: 14px; font-weight: 600;">${text}</div>`,
             iconSize: [200, 30]
         })
     }).addTo(map);
     
     drawingLayers.push(textMarker);
-    textInput.value = '';
+    if (textInput) textInput.value = '';
 }
 
-// Очистка рисунков
 function clearDrawings() {
     drawingLayers.forEach(layer => map.removeLayer(layer));
     drawingLayers = [];
 }
 
-// Расчёт расстояния (для круга)
 function getDistance(latlng1, latlng2) {
     const dx = latlng2.lng - latlng1.lng;
     const dy = latlng2.lat - latlng1.lat;
     return Math.sqrt(dx * dx + dy * dy) * maps[currentMap].scale;
 }
 
-// Экспорт карты в картинку
 function exportMap() {
     const mapContainer = document.querySelector('.map-container');
-    
-    html2canvas(mapContainer, {
-        backgroundColor: '#111111',
-        scale: 2,
-        useCORS: true
-    }).then(canvas => {
-        const link = document.createElement('a');
-        link.download = `PUBG-Mortar-Map-${Date.now()}.png`;
-        link.href = canvas.toDataURL('image/png');
-        link.click();
-    });
+    if (typeof html2canvas !== 'undefined' && mapContainer) {
+        html2canvas(mapContainer, {
+            backgroundColor: '#111111',
+            scale: 2,
+            useCORS: true
+        }).then(canvas => {
+            const link = document.createElement('a');
+            link.download = `PUBG-Mortar-Map-${Date.now()}.png`;
+            link.href = canvas.toDataURL('image/png');
+            link.click();
+        });
+    } else {
+        alert('Export library not loaded. Try again.');
+    }
 }
 
 // ===== MORTAR & DISTANCE FUNCTIONS =====
@@ -349,12 +281,14 @@ function loadMap(mapName) {
 
 function changeMap() {
     const select = document.getElementById('mapSelect');
-    loadMap(select.value);
+    if (select) loadMap(select.value);
 }
 
 function toggleMortarMode() {
     const toggle = document.getElementById('mortarModeToggle');
     const modeText = document.getElementById('modeText');
+    if (!toggle || !modeText) return;
+    
     mortarMode = toggle.checked;
     modeText.textContent = mortarMode ? 'MORTAR' : 'DISTANCE';
     clearPoints(false);
@@ -367,6 +301,8 @@ function toggleTheme() {
     const toggle = document.getElementById('themeToggle');
     const themeIcon = document.getElementById('themeIcon');
     const html = document.documentElement;
+    if (!toggle || !themeIcon) return;
+    
     if (toggle.checked) {
         html.setAttribute('data-theme', 'light');
         themeIcon.textContent = '☀️';
@@ -383,35 +319,36 @@ function loadTheme() {
     const toggle = document.getElementById('themeToggle');
     const themeIcon = document.getElementById('themeIcon');
     const html = document.documentElement;
+    
     if (savedTheme === 'light') {
-        toggle.checked = true;
+        if (toggle) toggle.checked = true;
         html.setAttribute('data-theme', 'light');
-        themeIcon.textContent = '☀️';
+        if (themeIcon) themeIcon.textContent = '☀️';
     } else {
-        toggle.checked = false;
+        if (toggle) toggle.checked = false;
         html.setAttribute('data-theme', 'dark');
-        themeIcon.textContent = '🌙';
+        if (themeIcon) themeIcon.textContent = '🌙';
     }
 }
 
 function createMortarCircles(position) {
     removeCircles();
     const scale = maps[currentMap].scale;
+    
     mortarCircleMin = L.circle(position, {
         radius: MORTAR_CONFIG.minRange / scale,
         color: '#ff4444',
         fillColor: '#ff4444',
         fillOpacity: 0.2,
-        weight: 2,
-        className: 'leaflet-circle'
+        weight: 2
     }).addTo(map);
+    
     mortarCircleMax = L.circle(position, {
         radius: MORTAR_CONFIG.maxRange / scale,
         color: '#00ff88',
         fillColor: '#00ff88',
         fillOpacity: 0.15,
-        weight: 2,
-        className: 'leaflet-circle'
+        weight: 2
     }).addTo(map);
 }
 
@@ -441,6 +378,7 @@ function handleMortarClick(e) {
         alert('Already 2 points! Press "Clear" to reset.');
         return;
     }
+    
     if (points.length === 0) {
         const marker = L.marker([e.latlng.lat, e.latlng.lng], {
             icon: mortarIcon
@@ -468,12 +406,14 @@ function handleDistanceClick(e) {
         alert('Уже 2 точки! Нажми "Clear" для сброса.');
         return;
     }
+    
     const marker = L.marker([e.latlng.lat, e.latlng.lng], {
         icon: standardIcon
     }).addTo(map);
     markers.push(marker);
     points.push({lat: e.latlng.lat, lng: e.latlng.lng, type: 'point'});
     document.getElementById('points').textContent = `${points.length}/2`;
+    
     if (points.length === 2) {
         const distance = calculateDistance();
         updateHUD(distance);
@@ -506,9 +446,11 @@ function drawMortarLine(distance) {
     if (polyline) {
         map.removeLayer(polyline);
     }
+    
     const lineColor = distance <= MORTAR_CONFIG.maxRange && distance >= MORTAR_CONFIG.minRange 
         ? '#00ff88'
         : '#ff4444';
+    
     polyline = L.polyline(points.map(p => [p.lat, p.lng]), {
         color: lineColor,
         weight: 4,
@@ -530,12 +472,17 @@ function drawMortarLine(distance) {
 }
 
 function updateHUD(distance) {
-    document.getElementById('distance').textContent = `${String(distance).padStart(4, '0')} m`;
-    const angle = getMortarAngle(distance);
-    document.getElementById('angle').textContent = angle !== '--' ? `${angle}°` : '--°';
-    const flightTime = getFlightTime(distance);
-    document.getElementById('flightTime').textContent = `${flightTime} с`;
-    document.getElementById('shellRadius').textContent = `${MORTAR_CONFIG.shellRadius} м`;
+    const distanceEl = document.getElementById('distance');
+    const angleEl = document.getElementById('angle');
+    const flightTimeEl = document.getElementById('flightTime');
+    const shellRadiusEl = document.getElementById('shellRadius');
+    const pointsEl = document.getElementById('points');
+    
+    if (distanceEl) distanceEl.textContent = `${String(distance).padStart(4, '0')} m`;
+    if (angleEl) angleEl.textContent = getMortarAngle(distance) !== '--' ? `${getMortarAngle(distance)}°` : '--°';
+    if (flightTimeEl) flightTimeEl.textContent = `${getFlightTime(distance)} с`;
+    if (shellRadiusEl) shellRadiusEl.textContent = `${MORTAR_CONFIG.shellRadius} м`;
+    if (pointsEl) pointsEl.textContent = `${points.length}/2`;
 }
 
 function getFlightTime(distance) {
@@ -569,40 +516,58 @@ function resetDistance() {
         polyline = null;
     }
     points = [];
-    document.getElementById('distance').textContent = '0000 m';
-    document.getElementById('angle').textContent = '--°';
-    document.getElementById('flightTime').textContent = '-- с';
-    document.getElementById('shellRadius').textContent = `${MORTAR_CONFIG.shellRadius} м`;
-    document.getElementById('points').textContent = '0/2';
+    const distanceEl = document.getElementById('distance');
+    const angleEl = document.getElementById('angle');
+    const flightTimeEl = document.getElementById('flightTime');
+    const shellRadiusEl = document.getElementById('shellRadius');
+    const pointsEl = document.getElementById('points');
+    
+    if (distanceEl) distanceEl.textContent = '0000 m';
+    if (angleEl) angleEl.textContent = '--°';
+    if (flightTimeEl) flightTimeEl.textContent = '-- с';
+    if (shellRadiusEl) shellRadiusEl.textContent = `${MORTAR_CONFIG.shellRadius} м`;
+    if (pointsEl) pointsEl.textContent = '0/2';
 }
 
 function clearPoints(reload = true) {
     markers.forEach(m => map.removeLayer(m));
     markers = [];
+    
     if (polyline) {
         map.removeLayer(polyline);
         polyline = null;
     }
+    
     removeCircles();
     mortarPosition = null;
     points = [];
-    document.getElementById('distance').textContent = '0000 m';
-    document.getElementById('angle').textContent = '--°';
-    document.getElementById('flightTime').textContent = '-- с';
-    document.getElementById('shellRadius').textContent = `${MORTAR_CONFIG.shellRadius} м`;
-    document.getElementById('points').textContent = '0/2';
+    
+    const distanceEl = document.getElementById('distance');
+    const angleEl = document.getElementById('angle');
+    const flightTimeEl = document.getElementById('flightTime');
+    const shellRadiusEl = document.getElementById('shellRadius');
+    const pointsEl = document.getElementById('points');
+    
+    if (distanceEl) distanceEl.textContent = '0000 m';
+    if (angleEl) angleEl.textContent = '--°';
+    if (flightTimeEl) flightTimeEl.textContent = '-- с';
+    if (shellRadiusEl) shellRadiusEl.textContent = `${MORTAR_CONFIG.shellRadius} м`;
+    if (pointsEl) pointsEl.textContent = '0/2';
 }
 
 function showHelp() {
-    document.getElementById('helpPopup').classList.add('active');
+    const popup = document.getElementById('helpPopup');
+    if (popup) popup.classList.add('active');
 }
 
 function hideHelp() {
-    document.getElementById('helpPopup').classList.remove('active');
+    const popup = document.getElementById('helpPopup');
+    if (popup) popup.classList.remove('active');
 }
 
 function handleKeyboard(e) {
     if (e.target.tagName === 'SELECT' || e.target.tagName === 'INPUT') return;
+    
     switch(e.key.toLowerCase()) {
         case 'r':
             resetDistance();
@@ -615,8 +580,10 @@ function handleKeyboard(e) {
             break;
         case 'm':
             const toggle = document.getElementById('mortarModeToggle');
-            toggle.checked = !toggle.checked;
-            toggleMortarMode();
+            if (toggle) {
+                toggle.checked = !toggle.checked;
+                toggleMortarMode();
+            }
             break;
         case 'd':
             toggleDrawPanel();
@@ -628,10 +595,14 @@ function handleKeyboard(e) {
     }
 }
 
-document.getElementById('helpPopup').addEventListener('click', function(e) {
-    if (e.target === this) {
-        hideHelp();
-    }
-});
+const helpPopup = document.getElementById('helpPopup');
+if (helpPopup) {
+    helpPopup.addEventListener('click', function(e) {
+        if (e.target === this) {
+            hideHelp();
+        }
+    });
+}
 
+// Запуск
 initMap();
