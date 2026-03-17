@@ -600,7 +600,7 @@ function handleKeyboard(e) {
             }
             break;
         case 'd':
-            toggleDrawPanel();
+            toggleDrawPanel();  // ← ДОБАВЬ
             break;
         case 'escape':
             hideHelp();
