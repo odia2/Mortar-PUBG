@@ -378,7 +378,7 @@ function removeCircles() {
 }
 
 function handleMapClick(e) {
-    if (drawMode || isDrawing) return;
+    if (drawMode || isDrawing) return;  // ← ПРОВЕРКА
     
     if (mortarMode) {
         handleMortarClick(e);
