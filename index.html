@@ -50,6 +50,16 @@
                 </select>
             </div>
             
+            <!-- Кнопка рисования -->
+            <button class="btn btn-draw" onclick="toggleDrawPanel()">
+                <span>✏️</span> Draw
+            </button>
+            
+            <!-- Экспорт -->
+            <button class="btn btn-export" onclick="exportMap()">
+                <span>📸</span> Export
+            </button>
+            
             <button class="btn btn-reset" onclick="resetDistance()">
                 <span>🔄</span> Reset
             </button>
@@ -65,40 +75,88 @@
     <!-- Карта -->
     <main class="map-container">
         <div id="map"></div>
+        
+        <!-- Панель рисования -->
+        <div class="draw-panel" id="drawPanel">
+            <div class="draw-header">
+                <h3>🎨 DRAW TOOLS</h3>
+                <button class="close-btn" onclick="toggleDrawPanel()">✕</button>
+            </div>
+            
+            <div class="draw-tools">
+                <button class="tool-btn active" data-tool="freehand" onclick="selectTool('freehand')">
+                    ✏️
+                </button>
+                <button class="tool-btn" data-tool="line" onclick="selectTool('line')">
+                    📏
+                </button>
+                <button class="tool-btn" data-tool="arrow" onclick="selectTool('arrow')">
+                    ➡️
+                </button>
+                <button class="tool-btn" data-tool="circle" onclick="selectTool('circle')">
+                    ⭕
+                </button>
+                <button class="tool-btn" data-tool="square" onclick="selectTool('square')">
+                    ⬜
+                </button>
+                <button class="tool-btn" data-tool="text" onclick="selectTool('text')">
+                    📝
+                </button>
+                <button class="tool-btn" data-tool="eraser" onclick="selectTool('eraser')">
+                    🧹
+                </button>
+            </div>
+            
+            <div class="color-picker">
+                <label>COLOR:</label>
+                <div class="colors">
+                    <button class="color-btn active" data-color="#ff3b3b" style="background: #ff3b3b;" onclick="selectColor('#ff3b3b')"></button>
+                    <button class="color-btn" data-color="#00ff88" style="background: #00ff88;" onclick="selectColor('#00ff88')"></button>
+                    <button class="color-btn" data-color="#4facfe" style="background: #4facfe;" onclick="selectColor('#4facfe')"></button>
+                    <button class="color-btn" data-color="#ffaa00" style="background: #ffaa00;" onclick="selectColor('#ffaa00')"></button>
+                    <button class="color-btn" data-color="#ffffff" style="background: #ffffff;" onclick="selectColor('#ffffff')"></button>
+                </div>
+            </div>
+            
+            <div class="text-input-container" id="textInputContainer" style="display: none;">
+                <input type="text" id="textInput" placeholder="Enter text..." maxlength="30">
+                <button onclick="addText()">ADD</button>
+            </div>
+            
+            <button class="btn btn-clear-draw" onclick="clearDrawings()">
+                🗑️ Clear All Drawings
+            </button>
+        </div>
     </main>
 
     <!-- HUD панель -->
     <footer class="hud-panel">
-    <div class="hud-item">
-        <span class="hud-label">DISTANCE</span>
-        <span class="hud-value" id="distance">0000 m</span>
-    </div>
-    <div class="hud-divider"></div>
-    <div class="hud-item">
-        <span class="hud-label">MORTAR ANGLE</span>
-        <span class="hud-value" id="angle">--°</span>
-    </div>
-    <div class="hud-divider"></div>
-    <div class="hud-item">
-        <span class="hud-label">ELEVATION</span>
-        <span class="hud-value" id="elevation">0°</span>
-    </div>
-    <div class="hud-divider"></div>
-    <div class="hud-item">
-        <span class="hud-label">FLIGHT TIME</span>
-        <span class="hud-value" id="flightTime">-- с</span>
-    </div>
-    <div class="hud-divider"></div>
-    <div class="hud-item">
-        <span class="hud-label">SHELL RADIUS</span>
-        <span class="hud-value" id="shellRadius">10 м</span>
-    </div>
-    <div class="hud-divider"></div>
-    <div class="hud-item">
-        <span class="hud-label">POINTS</span>
-        <span class="hud-value" id="points">0/2</span>
-    </div>
-</footer>
+        <div class="hud-item">
+            <span class="hud-label">DISTANCE</span>
+            <span class="hud-value" id="distance">0000 m</span>
+        </div>
+        <div class="hud-divider"></div>
+        <div class="hud-item">
+            <span class="hud-label">MORTAR ANGLE</span>
+            <span class="hud-value" id="angle">--°</span>
+        </div>
+        <div class="hud-divider"></div>
+        <div class="hud-item">
+            <span class="hud-label">FLIGHT TIME</span>
+            <span class="hud-value" id="flightTime">-- с</span>
+        </div>
+        <div class="hud-divider"></div>
+        <div class="hud-item">
+            <span class="hud-label">SHELL RADIUS</span>
+            <span class="hud-value" id="shellRadius">25 м</span>
+        </div>
+        <div class="hud-divider"></div>
+        <div class="hud-item">
+            <span class="hud-label">POINTS</span>
+            <span class="hud-value" id="points">0/2</span>
+        </div>
+    </footer>
+
     <!-- Help Popup -->
     <div class="popup-overlay" id="helpPopup">
         <div class="popup">
@@ -121,21 +179,22 @@
                     <li>Green circle = max range (800m)</li>
                     <li>Red circle = min safe distance (100m)</li>
                 </ol>
-                <h3>⛰️ Elevation:</h3>
+                <h3>✏️ Draw Mode:</h3>
                 <ol>
-                    <li><strong>Double-click</strong> on mortar icon (🎯)</li>
-                    <li>Use <strong>-1° / 0° / +1°</strong> buttons</li>
-                    <li>+1° = +50m to range (shooting uphill)</li>
-                    <li>-1° = -50m to range (shooting downhill)</li>
+                    <li>Click <strong>DRAW</strong> button</li>
+                    <li>Select tool (line, circle, arrow, text)</li>
+                    <li>Choose color</li>
+                    <li>Draw on the map</li>
                 </ol>
                 <div class="popup-tip">
-                    💡 Tip: Press <kbd>R</kbd> to reset, <kbd>C</kbd> to clear, <kbd>H</kbd> for help, <kbd>M</kbd> toggle mode
+                    💡 Tip: Press <kbd>R</kbd> to reset, <kbd>C</kbd> to clear, <kbd>H</kbd> for help, <kbd>M</kbd> toggle mode, <kbd>D</kbd> draw panel
                 </div>
             </div>
         </div>
     </div>
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
     <script src="script.js"></script>
 </body>
 </html>
