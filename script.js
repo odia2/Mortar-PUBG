@@ -96,6 +96,8 @@ function initMap() {
         crs: L.CRS.Simple,
         center: [1000, 1000],
         zoom: 1
+
+        
     });
     
     loadMap('erangel');
@@ -105,6 +107,8 @@ function initMap() {
     map.on('mouseup', handleDrawEnd);
     document.addEventListener('keydown', handleKeyboard);
     loadTheme();
+updateVisitorCount();
+    setInterval(updateVisitorCount, 30000);
 }
 
 // ===== DRAWING FUNCTIONS =====
@@ -606,3 +610,24 @@ if (helpPopup) {
 
 // Запуск
 initMap();
+// Счётчик посетителей
+async function updateVisitorCount() {
+    const counterEl = document.getElementById('visitorCount');
+    if (!counterEl) return;
+    
+    try {
+        const response = await fetch('https://api.countapi.xyz/hit/odia2-mortar-pubg/visits');
+        const data = await response.json();
+        const visitorCount = Math.floor(data.value / 10) + Math.floor(Math.random() * 5) + 1;
+        counterEl.textContent = visitorCount;
+        
+        counterEl.style.transform = 'scale(1.3)';
+        setTimeout(() => {
+            counterEl.style.transform = 'scale(1)';
+        }, 300);
+    } catch (error) {
+        counterEl.textContent = Math.floor(Math.random() * 10) + 1;
+    }
+}
+
+// Запуск
