@@ -118,15 +118,22 @@ function initMap() {
 // ===== DRAWING FUNCTIONS =====
 
 // Переключение панели рисования
+// Переключение панели рисования
 function toggleDrawPanel() {
     const panel = document.getElementById('drawPanel');
     panel.classList.toggle('active');
     drawMode = panel.classList.contains('active');
     
     if (drawMode) {
+        // ← ОТКЛЮЧИТЬ перетаскивание карты
+        map.dragging.disable();
         map.getContainer().classList.add('leaflet-drawing');
+        map.getContainer().style.cursor = 'crosshair';
     } else {
+        // ← ВКЛЮЧИТЬ перетаскивание обратно
+        map.dragging.enable();
         map.getContainer().classList.remove('leaflet-drawing');
+        map.getContainer().style.cursor = '';
     }
 }
 
@@ -168,6 +175,9 @@ function selectColor(color) {
 function handleDrawStart(e) {
     if (!drawMode || isDrawing) return;
     
+    // ← Предотвратить перетаскивание карты
+    e.originalEvent.stopPropagation();
+    
     isDrawing = true;
     drawStart = e.latlng;
     
@@ -179,7 +189,6 @@ function handleDrawStart(e) {
             smoothFactor: 1
         }).addTo(map);
     }
-}
 
 // Движение при рисовании
 function handleDrawMove(e) {
