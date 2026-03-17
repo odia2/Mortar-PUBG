@@ -88,7 +88,7 @@ const standardIcon = L.divIcon({
     iconAnchor: [15, 15]
 });
 
-// Инициализация карты
+// ===== INIT MAP =====
 function initMap() {
     map = L.map('map', {
         minZoom: 0,
@@ -100,29 +100,16 @@ function initMap() {
     
     loadMap('erangel');
     map.on('click', handleMapClick);
-    map.on('mousedown', handleDrawStart);      // ← ДОБАВЬ
-    map.on('mousemove', handleDrawMove);       // ← ДОБАВЬ
-    map.on('mouseup', handleDrawEnd);          // ← ДОБАВЬ
-    document.addEventListener('keydown', handleKeyboard);
-    loadTheme();
-}
-
-        
-    });
-    
-    loadMap('erangel');
-    map.on('click', handleMapClick);
     map.on('mousedown', handleDrawStart);
     map.on('mousemove', handleDrawMove);
     map.on('mouseup', handleDrawEnd);
     document.addEventListener('keydown', handleKeyboard);
     loadTheme();
-updateVisitorCount();
+    updateVisitorCount();
     setInterval(updateVisitorCount, 30000);
 }
 
 // ===== DRAWING FUNCTIONS =====
-
 function toggleDrawPanel() {
     const panel = document.getElementById('drawPanel');
     if (!panel) return;
@@ -279,8 +266,7 @@ function exportMap() {
     }
 }
 
-// ===== MORTAR & DISTANCE FUNCTIONS =====
-
+// ===== MAP FUNCTIONS =====
 function loadMap(mapName) {
     const config = maps[mapName];
     if (mapLayer) {
@@ -378,7 +364,7 @@ function removeCircles() {
 }
 
 function handleMapClick(e) {
-    if (drawMode || isDrawing) return;  // ← ПРОВЕРКА
+    if (drawMode || isDrawing) return;
     
     if (mortarMode) {
         handleMortarClick(e);
@@ -600,7 +586,7 @@ function handleKeyboard(e) {
             }
             break;
         case 'd':
-            toggleDrawPanel();  // ← ДОБАВЬ
+            toggleDrawPanel();
             break;
         case 'escape':
             hideHelp();
@@ -618,177 +604,7 @@ if (helpPopup) {
     });
 }
 
-// ===== DRAWING VARIABLES =====
-let drawMode = false;
-let currentTool = 'freehand';
-let currentColor = '#ff3b3b';
-let drawingLayers = [];
-let isDrawing = false;
-let drawStart = null;
-let tempLayer = null;
-let freehandPoints = [];
-
-// ===== DRAWING FUNCTIONS =====
-
-function toggleDrawPanel() {
-    const panel = document.getElementById('drawPanel');
-    if (!panel) return;
-    
-    panel.classList.toggle('active');
-    drawMode = panel.classList.contains('active');
-    
-    if (drawMode) {
-        map.dragging.disable();
-        map.touchZoom.disable();
-        map.doubleClickZoom.disable();
-        map.scrollWheelZoom.disable();
-        map.getContainer().style.cursor = 'crosshair';
-    } else {
-        map.dragging.enable();
-        map.touchZoom.enable();
-        map.doubleClickZoom.enable();
-        map.scrollWheelZoom.enable();
-        map.getContainer().style.cursor = '';
-    }
-}
-
-function selectTool(tool) {
-    currentTool = tool;
-    document.querySelectorAll('.tool-btn').forEach(btn => {
-        btn.classList.remove('active');
-        if (btn.dataset.tool === tool) {
-            btn.classList.add('active');
-        }
-    });
-    
-    const textInput = document.getElementById('textInputContainer');
-    if (textInput) {
-        textInput.style.display = tool === 'text' ? 'flex' : 'none';
-    }
-}
-
-function selectColor(color) {
-    currentColor = color;
-    document.querySelectorAll('.color-btn').forEach(btn => {
-        btn.classList.remove('active');
-        if (btn.dataset.color === color) {
-            btn.classList.add('active');
-        }
-    });
-}
-
-function handleDrawStart(e) {
-    if (!drawMode || isDrawing) return;
-    isDrawing = true;
-    drawStart = e.latlng;
-    
-    if (currentTool === 'freehand') {
-        freehandPoints = [e.latlng];
-        tempLayer = L.polyline(freehandPoints, {
-            color: currentColor,
-            weight: 3
-        }).addTo(map);
-    }
-}
-
-function handleDrawMove(e) {
-    if (!drawMode || !isDrawing || !drawStart) return;
-    
-    if (currentTool === 'freehand') {
-        freehandPoints.push(e.latlng);
-        tempLayer.setLatLngs(freehandPoints);
-    } else if (currentTool === 'line') {
-        if (tempLayer) map.removeLayer(tempLayer);
-        tempLayer = L.polyline([drawStart, e.latlng], {
-            color: currentColor,
-            weight: 3
-        }).addTo(map);
-    } else if (currentTool === 'circle') {
-        if (tempLayer) map.removeLayer(tempLayer);
-        const radius = getDistance(drawStart, e.latlng);
-        tempLayer = L.circle(drawStart, {
-            radius: radius,
-            color: currentColor,
-            fillColor: currentColor,
-            fillOpacity: 0.2,
-            weight: 2
-        }).addTo(map);
-    } else if (currentTool === 'square') {
-        if (tempLayer) map.removeLayer(tempLayer);
-        tempLayer = L.rectangle([
-            [drawStart.lat, drawStart.lng],
-            [e.latlng.lat, e.latlng.lng]
-        ], {
-            color: currentColor,
-            fillColor: currentColor,
-            fillOpacity: 0.2,
-            weight: 2
-        }).addTo(map);
-    }
-}
-
-function handleDrawEnd(e) {
-    if (!drawMode || !isDrawing) return;
-    isDrawing = false;
-    
-    if (tempLayer) {
-        drawingLayers.push(tempLayer);
-        tempLayer = null;
-    }
-    
-    drawStart = null;
-    freehandPoints = [];
-}
-
-function addText() {
-    const textInput = document.getElementById('textInput');
-    const text = textInput ? textInput.value.trim() : '';
-    if (!text || !drawStart) return;
-    
-    const textMarker = L.marker(drawStart, {
-        icon: L.divIcon({
-            className: 'leaflet-text-marker',
-            html: `<div style="background: rgba(0,0,0,0.7); color: ${currentColor}; padding: 5px 10px; border-radius: 4px; font-size: 14px; font-weight: 600;">${text}</div>`,
-            iconSize: [200, 30]
-        })
-    }).addTo(map);
-    
-    drawingLayers.push(textMarker);
-    if (textInput) textInput.value = '';
-}
-
-function clearDrawings() {
-    drawingLayers.forEach(layer => map.removeLayer(layer));
-    drawingLayers = [];
-}
-
-function getDistance(latlng1, latlng2) {
-    const dx = latlng2.lng - latlng1.lng;
-    const dy = latlng2.lat - latlng1.lat;
-    return Math.sqrt(dx * dx + dy * dy) * maps[currentMap].scale;
-}
-
-function exportMap() {
-    const mapContainer = document.querySelector('.map-container');
-    if (typeof html2canvas !== 'undefined' && mapContainer) {
-        html2canvas(mapContainer, {
-            backgroundColor: '#111111',
-            scale: 2,
-            useCORS: true
-        }).then(canvas => {
-            const link = document.createElement('a');
-            link.download = `PUBG-Mortar-Map-${Date.now()}.png`;
-            link.href = canvas.toDataURL('image/png');
-            link.click();
-        });
-    } else {
-        alert('Export library not loaded. Try again.');
-    }
-}
-
-// Запуск
-initMap();
-// Счётчик посетителей
+// ===== VISITOR COUNTER =====
 async function updateVisitorCount() {
     const counterEl = document.getElementById('visitorCount');
     if (!counterEl) return;
@@ -809,3 +625,4 @@ async function updateVisitorCount() {
 }
 
 // Запуск
+initMap();
