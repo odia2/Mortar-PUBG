@@ -42,13 +42,22 @@ const maps = {
 const MORTAR_CONFIG = {
     minRange: 100,
     maxRange: 800,
-    shellRadius: 10,
+    shellRadius: 25,
     projectileSpeed: 110
+};
+
+// Настройки рисования
+const DRAW_CONFIG = {
+    tools: ['freehand', 'line', 'arrow', 'circle', 'square', 'text', 'eraser'],
+    colors: ['#ff3b3b', '#00ff88', '#4facfe', '#ffaa00', '#ffffff']
 };
 
 // Глобальные переменные
 let currentMap = 'erangel';
 let mortarMode = false;
+let drawMode = false;
+let currentTool = 'freehand';
+let currentColor = '#ff3b3b';
 let mapLayer = null;
 let map;
 let markers = [];
@@ -57,22 +66,27 @@ let polyline = null;
 let mortarCircleMin = null;
 let mortarCircleMax = null;
 let mortarPosition = null;
-let mortarElevation = 0;
-let elevationPopup = null;
+
+// Переменные для рисования
+let drawingLayers = [];
+let isDrawing = false;
+let drawStart = null;
+let tempLayer = null;
+let freehandPoints = [];
 
 // Иконки
 const mortarIcon = L.divIcon({
     className: 'mortar-icon',
-    html: '<div style="width: 20px; height: 20px; background: #ff3b3b; border: 2px solid white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; box-shadow: 0 0 10px #ff3b3b;">🎯</div>',
-    iconSize: [20, 20],
-    iconAnchor: [10, 10]
+    html: '<div style="width: 40px; height: 40px; background: #ff3b3b; border: 3px solid white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 20px; box-shadow: 0 0 15px #ff3b3b;">🎯</div>',
+    iconSize: [40, 40],
+    iconAnchor: [20, 20]
 });
 
 const targetIcon = L.divIcon({
     className: 'target-icon',
-    html: '<div style="width: 20px; height: 20px; background: #00ff88; border: 2px solid white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 10px; box-shadow: 0 0 10px #00ff88;">💥</div>',
-    iconSize: [20, 20],
-    iconAnchor: [10, 10]
+    html: '<div style="width: 40px; height: 40px; background: #00ff88; border: 3px solid white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 20px; box-shadow: 0 0 15px #00ff88;">💥</div>',
+    iconSize: [40, 40],
+    iconAnchor: [20, 20]
 });
 
 const standardIcon = L.divIcon({
@@ -94,136 +108,217 @@ function initMap() {
     
     loadMap('erangel');
     map.on('click', handleMapClick);
-    map.on('dblclick', handleMapDoubleClick);
+    map.on('mousedown', handleDrawStart);
+    map.on('mousemove', handleDrawMove);
+    map.on('mouseup', handleDrawEnd);
     document.addEventListener('keydown', handleKeyboard);
     loadTheme();
-    initPopupDrag();
 }
 
-// Перетаскивание popup (ЛКМ) + Удаление (ПКМ)
-function initPopupDrag() {
-    let draggedPopup = null;
-    let dragOffset = { x: 0, y: 0 };
-    
-    document.addEventListener('mousedown', function(e) {
-        const popup = document.querySelector('.leaflet-popup-content-wrapper');
-        if (popup && popup.contains(e.target) && e.button === 0) {
-            draggedPopup = popup;
-            const rect = popup.getBoundingClientRect();
-            dragOffset.x = e.clientX - rect.left;
-            dragOffset.y = e.clientY - rect.top;
-            popup.style.cursor = 'grabbing';
-        }
-    });
-    
-    document.addEventListener('mousemove', function(e) {
-        if (draggedPopup) {
-            draggedPopup.style.position = 'fixed';
-            draggedPopup.style.left = (e.clientX - dragOffset.x) + 'px';
-            draggedPopup.style.top = (e.clientY - dragOffset.y) + 'px';
-            draggedPopup.style.zIndex = '10000';
-        }
-    });
-    
-    document.addEventListener('mouseup', function() {
-        if (draggedPopup) {
-            draggedPopup.style.cursor = 'default';
-            draggedPopup = null;
-        }
-    });
-    
-    document.addEventListener('contextmenu', function(e) {
-        const popup = document.querySelector('.leaflet-popup-content-wrapper');
-        if (popup && popup.contains(e.target)) {
-            e.preventDefault();
-            e.stopPropagation();
-            if (polyline) {
-                map.removeLayer(polyline);
-                polyline = null;
-            }
-            markers.forEach(m => map.removeLayer(m));
-            markers = [];
-            points = [];
-            document.getElementById('distance').textContent = '0000 m';
-            document.getElementById('angle').textContent = '--°';
-            document.getElementById('flightTime').textContent = '-- с';
-            document.getElementById('points').textContent = '0/2';
-            return false;
-        }
-    });
-}
+// ===== DRAWING FUNCTIONS =====
 
-// Двойной клик по миномёту (регулировка высоты)
-function handleMapDoubleClick(e) {
-    if (!mortarMode || points.length === 0 || points[0].type !== 'mortar') return;
+// Переключение панели рисования
+function toggleDrawPanel() {
+    const panel = document.getElementById('drawPanel');
+    panel.classList.toggle('active');
+    drawMode = panel.classList.contains('active');
     
-    if (elevationPopup) {
-        map.removeLayer(elevationPopup);
-        elevationPopup = null;
-        return;
-    }
-    
-    const elevationDisplay = mortarElevation >= 0 ? `+${mortarElevation}°` : `${mortarElevation}°`;
-    
-    const popupContent = `
-        <div style="text-align: center; min-width: 150px;">
-            <h4 style="margin: 0 0 10px 0; color: #ff3b3b; font-family: 'Orbitron', sans-serif;">⛰️ ELEVATION</h4>
-            <div style="font-size: 24px; font-weight: bold; margin: 10px 0; color: #fff;">
-                ${elevationDisplay}
-            </div>
-            <div style="display: flex; gap: 5px; justify-content: center;">
-                <button onclick="adjustElevation(-1)" style="background: #ff4444; color: white; border: none; padding: 8px 15px; border-radius: 5px; cursor: pointer; font-weight: bold; font-size: 14px;">-1°</button>
-                <button onclick="adjustElevation(0)" style="background: #666; color: white; border: none; padding: 8px 15px; border-radius: 5px; cursor: pointer; font-size: 14px;">0°</button>
-                <button onclick="adjustElevation(1)" style="background: #00ff88; color: black; border: none; padding: 8px 15px; border-radius: 5px; cursor: pointer; font-weight: bold; font-size: 14px;">+1°</button>
-            </div>
-            <div style="margin-top: 10px; font-size: 10px; color: #aaa;">
-                Double-click to close
-            </div>
-        </div>
-    `;
-    
-    elevationPopup = L.popup({
-        closeButton: false,
-        autoClose: false,
-        closeOnClick: false,
-        offset: [0, -20]
-    })
-    .setLatLng(e.latlng)
-    .setContent(popupContent)
-    .openOn(map);
-    
-    map.once('dblclick', function() {
-        if (elevationPopup) {
-            map.removeLayer(elevationPopup);
-            elevationPopup = null;
-        }
-    });
-}
-
-// Регулировка высоты
-function adjustElevation(change) {
-    if (change === 0) {
-        mortarElevation = 0;
+    if (drawMode) {
+        map.getContainer().classList.add('leaflet-drawing');
     } else {
-        mortarElevation += change;
-        if (mortarElevation > 10) mortarElevation = 10;
-        if (mortarElevation < -10) mortarElevation = -10;
-    }
-    
-    if (points.length === 2) {
-        const distance = calculateDistance();
-        updateHUD(distance);
-        drawMortarLine(distance);
-    }
-    
-    if (elevationPopup && points.length > 0 && points[0].type === 'mortar') {
-        map.removeLayer(elevationPopup);
-        elevationPopup = null;
-        handleMapDoubleClick({ latlng: points[0] });
+        map.getContainer().classList.remove('leaflet-drawing');
     }
 }
 
-// Загрузка карты
+// Выбор инструмента
+function selectTool(tool) {
+    currentTool = tool;
+    
+    // Обновляем активную кнопку
+    document.querySelectorAll('.tool-btn').forEach(btn => {
+        btn.classList.remove('active');
+        if (btn.dataset.tool === tool) {
+            btn.classList.add('active');
+        }
+    });
+    
+    // Показываем input для текста
+    const textInput = document.getElementById('textInputContainer');
+    if (tool === 'text') {
+        textInput.style.display = 'flex';
+        document.getElementById('textInput').focus();
+    } else {
+        textInput.style.display = 'none';
+    }
+}
+
+// Выбор цвета
+function selectColor(color) {
+    currentColor = color;
+    
+    document.querySelectorAll('.color-btn').forEach(btn => {
+        btn.classList.remove('active');
+        if (btn.dataset.color === color) {
+            btn.classList.add('active');
+        }
+    });
+}
+
+// Начало рисования
+function handleDrawStart(e) {
+    if (!drawMode || isDrawing) return;
+    
+    isDrawing = true;
+    drawStart = e.latlng;
+    
+    if (currentTool === 'freehand') {
+        freehandPoints = [e.latlng];
+        tempLayer = L.polyline(freehandPoints, {
+            color: currentColor,
+            weight: 3,
+            smoothFactor: 1
+        }).addTo(map);
+    }
+}
+
+// Движение при рисовании
+function handleDrawMove(e) {
+    if (!drawMode || !isDrawing || !drawStart) return;
+    
+    if (currentTool === 'freehand') {
+        freehandPoints.push(e.latlng);
+        tempLayer.setLatLngs(freehandPoints);
+    } else if (currentTool === 'line') {
+        if (tempLayer) map.removeLayer(tempLayer);
+        tempLayer = L.polyline([drawStart, e.latlng], {
+            color: currentColor,
+            weight: 3
+        }).addTo(map);
+    } else if (currentTool === 'arrow') {
+        if (tempLayer) map.removeLayer(tempLayer);
+        tempLayer = L.polyline([drawStart, e.latlng], {
+            color: currentColor,
+            weight: 3
+        }).addTo(map);
+    } else if (currentTool === 'circle') {
+        if (tempLayer) map.removeLayer(tempLayer);
+        const radius = getDistance(drawStart, e.latlng);
+        tempLayer = L.circle(drawStart, {
+            radius: radius,
+            color: currentColor,
+            fillColor: currentColor,
+            fillOpacity: 0.2,
+            weight: 2
+        }).addTo(map);
+    } else if (currentTool === 'square') {
+        if (tempLayer) map.removeLayer(tempLayer);
+        const bounds = [
+            [drawStart.lat, drawStart.lng],
+            [e.latlng.lat, e.latlng.lng]
+        ];
+        tempLayer = L.rectangle(bounds, {
+            color: currentColor,
+            fillColor: currentColor,
+            fillOpacity: 0.2,
+            weight: 2
+        }).addTo(map);
+    }
+}
+
+// Конец рисования
+function handleDrawEnd(e) {
+    if (!drawMode || !isDrawing) return;
+    
+    isDrawing = false;
+    
+    if (tempLayer) {
+        drawingLayers.push(tempLayer);
+        
+        // Добавляем стрелку для arrow инструмента
+        if (currentTool === 'arrow') {
+            addArrowHead(drawStart, e.latlng);
+        }
+        
+        tempLayer = null;
+    }
+    
+    drawStart = null;
+    freehandPoints = [];
+}
+
+// Добавление стрелки
+function addArrowHead(start, end) {
+    const angle = Math.atan2(end.lat - start.lat, end.lng - start.lng);
+    const arrowLength = 50 / maps[currentMap].scale;
+    
+    const arrowLeft = {
+        lat: end.lat - arrowLength * Math.cos(angle - Math.PI / 6),
+        lng: end.lng - arrowLength * Math.sin(angle - Math.PI / 6)
+    };
+    
+    const arrowRight = {
+        lat: end.lat - arrowLength * Math.cos(angle + Math.PI / 6),
+        lng: end.lng - arrowLength * Math.sin(angle + Math.PI / 6)
+    };
+    
+    const arrowLayer = L.polyline([end, arrowLeft, end, arrowRight], {
+        color: currentColor,
+        weight: 3
+    }).addTo(map);
+    
+    drawingLayers.push(arrowLayer);
+}
+
+// Добавление текста
+function addText() {
+    const textInput = document.getElementById('textInput');
+    const text = textInput.value.trim();
+    
+    if (!text || !drawStart) return;
+    
+    const textMarker = L.marker(drawStart, {
+        icon: L.divIcon({
+            className: 'leaflet-text-marker',
+            html: `<div class="text-content" style="color: ${currentColor};">${text}</div>`,
+            iconSize: [200, 30]
+        })
+    }).addTo(map);
+    
+    drawingLayers.push(textMarker);
+    textInput.value = '';
+}
+
+// Очистка рисунков
+function clearDrawings() {
+    drawingLayers.forEach(layer => map.removeLayer(layer));
+    drawingLayers = [];
+}
+
+// Расчёт расстояния (для круга)
+function getDistance(latlng1, latlng2) {
+    const dx = latlng2.lng - latlng1.lng;
+    const dy = latlng2.lat - latlng1.lat;
+    return Math.sqrt(dx * dx + dy * dy) * maps[currentMap].scale;
+}
+
+// Экспорт карты в картинку
+function exportMap() {
+    const mapContainer = document.querySelector('.map-container');
+    
+    html2canvas(mapContainer, {
+        backgroundColor: '#111111',
+        scale: 2,
+        useCORS: true
+    }).then(canvas => {
+        const link = document.createElement('a');
+        link.download = `PUBG-Mortar-Map-${Date.now()}.png`;
+        link.href = canvas.toDataURL('image/png');
+        link.click();
+    });
+}
+
+// ===== MORTAR & DISTANCE FUNCTIONS =====
+
 function loadMap(mapName) {
     const config = maps[mapName];
     if (mapLayer) {
@@ -236,13 +331,11 @@ function loadMap(mapName) {
     clearPoints(false);
 }
 
-// Смена карты
 function changeMap() {
     const select = document.getElementById('mapSelect');
     loadMap(select.value);
 }
 
-// Переключение режима миномёта
 function toggleMortarMode() {
     const toggle = document.getElementById('mortarModeToggle');
     const modeText = document.getElementById('modeText');
@@ -254,7 +347,6 @@ function toggleMortarMode() {
     }
 }
 
-// Переключение темы
 function toggleTheme() {
     const toggle = document.getElementById('themeToggle');
     const themeIcon = document.getElementById('themeIcon');
@@ -270,7 +362,6 @@ function toggleTheme() {
     }
 }
 
-// Загрузка сохранённой темы
 function loadTheme() {
     const savedTheme = localStorage.getItem('theme') || 'dark';
     const toggle = document.getElementById('themeToggle');
@@ -287,7 +378,6 @@ function loadTheme() {
     }
 }
 
-// Создание кругов миномёта
 function createMortarCircles(position) {
     removeCircles();
     const scale = maps[currentMap].scale;
@@ -295,7 +385,7 @@ function createMortarCircles(position) {
         radius: MORTAR_CONFIG.minRange / scale,
         color: '#ff4444',
         fillColor: '#ff4444',
-        fillOpacity: 0.15,
+        fillOpacity: 0.2,
         weight: 2,
         className: 'leaflet-circle'
     }).addTo(map);
@@ -303,13 +393,12 @@ function createMortarCircles(position) {
         radius: MORTAR_CONFIG.maxRange / scale,
         color: '#00ff88',
         fillColor: '#00ff88',
-        fillOpacity: 0.08,
+        fillOpacity: 0.15,
         weight: 2,
         className: 'leaflet-circle'
     }).addTo(map);
 }
 
-// Удаление кругов
 function removeCircles() {
     if (mortarCircleMin) {
         map.removeLayer(mortarCircleMin);
@@ -321,8 +410,9 @@ function removeCircles() {
     }
 }
 
-// Клик по карте
 function handleMapClick(e) {
+    if (drawMode || isDrawing) return;
+    
     if (mortarMode) {
         handleMortarClick(e);
     } else {
@@ -330,7 +420,6 @@ function handleMapClick(e) {
     }
 }
 
-// Клик в режиме миномёта
 function handleMortarClick(e) {
     if (points.length >= 2) {
         alert('Already 2 points! Press "Clear" to reset.');
@@ -358,7 +447,6 @@ function handleMortarClick(e) {
     }
 }
 
-// Клик в режиме дистанции
 function handleDistanceClick(e) {
     if (points.length >= 2) {
         alert('Уже 2 точки! Нажми "Clear" для сброса.');
@@ -377,7 +465,6 @@ function handleDistanceClick(e) {
     }
 }
 
-// Расчёт расстояния
 function calculateDistance() {
     if (points.length < 2) return 0;
     const dx = points[1].lng - points[0].lng;
@@ -386,7 +473,6 @@ function calculateDistance() {
     return Math.round(distance * maps[currentMap].scale);
 }
 
-// Отрисовка линии (режим дистанции)
 function drawLine(distance) {
     if (polyline) {
         map.removeLayer(polyline);
@@ -400,7 +486,6 @@ function drawLine(distance) {
     map.fitBounds(polyline.getBounds(), { padding: [100, 100] });
 }
 
-// Отрисовка линии (режим миномёта)
 function drawMortarLine(distance) {
     if (polyline) {
         map.removeLayer(polyline);
@@ -417,24 +502,17 @@ function drawMortarLine(distance) {
     
     const isValid = distance <= MORTAR_CONFIG.maxRange && distance >= MORTAR_CONFIG.minRange;
     const statusText = isValid ? '✅ VALID' : '❌ OUT OF RANGE';
-    const statusEmoji = isValid ? '🟢' : '🔴';
-    const elevationBonus = mortarElevation * 50;
-    const elevationText = mortarElevation !== 0 
-        ? `<br><b>⛰️ Elevation:</b> ${mortarElevation >= 0 ? '+' : ''}${mortarElevation}° (${elevationBonus >= 0 ? '+' : ''}${elevationBonus}м)`
-        : '';
     
     polyline.bindPopup(`
-        <b>📏 Distance:</b> ${distance} m<br>
-        <b>🎯 Angle:</b> ${getMortarAngle(distance)}°${elevationText}<br>
-        <b>⏱️ Flight Time:</b> ${getFlightTime(distance)} с<br>
-        <b>💥 Kill Radius:</b> ${MORTAR_CONFIG.shellRadius} м<br>
-        <b>${statusEmoji} Status:</b> ${statusText}
+        <b>Distance:</b> ${distance} m<br>
+        <b>Angle:</b> ${getMortarAngle(distance)}°<br>
+        <b>Flight Time:</b> ${getFlightTime(distance)} с<br>
+        <b>Status:</b> ${statusText}
     `).openPopup();
     
     map.fitBounds(polyline.getBounds(), { padding: [100, 100] });
 }
 
-// Обновление HUD
 function updateHUD(distance) {
     document.getElementById('distance').textContent = `${String(distance).padStart(4, '0')} m`;
     const angle = getMortarAngle(distance);
@@ -442,62 +520,46 @@ function updateHUD(distance) {
     const flightTime = getFlightTime(distance);
     document.getElementById('flightTime').textContent = `${flightTime} с`;
     document.getElementById('shellRadius').textContent = `${MORTAR_CONFIG.shellRadius} м`;
-    
-    const elevationDisplay = mortarElevation >= 0 ? `+${mortarElevation}°` : `${mortarElevation}°`;
-    const elevationEl = document.getElementById('elevation');
-    if (elevationEl) {
-        elevationEl.textContent = elevationDisplay;
-    }
 }
 
-// Время полёта
 function getFlightTime(distance) {
     return (distance / MORTAR_CONFIG.projectileSpeed).toFixed(1);
 }
 
-// Угол миномёта (с учётом высоты)
 function getMortarAngle(distance) {
-    const elevationBonus = mortarElevation * 50;
-    const adjustedDistance = distance - elevationBonus;
-    
-    if (adjustedDistance < 100) return '--';
-    if (adjustedDistance < 150) return 75;
-    if (adjustedDistance < 200) return 70;
-    if (adjustedDistance < 250) return 65;
-    if (adjustedDistance < 300) return 60;
-    if (adjustedDistance < 400) return 55;
-    if (adjustedDistance < 500) return 50;
-    if (adjustedDistance < 600) return 45;
-    if (adjustedDistance < 700) return 40;
-    if (adjustedDistance < 800) return 35;
-    if (adjustedDistance < 900) return 30;
-    if (adjustedDistance < 1000) return 25;
-    if (adjustedDistance < 1200) return 20;
-    if (adjustedDistance < 1400) return 15;
-    if (adjustedDistance < 1600) return 12;
-    if (adjustedDistance < 1800) return 10;
-    if (adjustedDistance < 2000) return 8;
+    if (distance < 100) return '--';
+    if (distance < 150) return 75;
+    if (distance < 200) return 70;
+    if (distance < 250) return 65;
+    if (distance < 300) return 60;
+    if (distance < 400) return 55;
+    if (distance < 500) return 50;
+    if (distance < 600) return 45;
+    if (distance < 700) return 40;
+    if (distance < 800) return 35;
+    if (distance < 900) return 30;
+    if (distance < 1000) return 25;
+    if (distance < 1200) return 20;
+    if (distance < 1400) return 15;
+    if (distance < 1600) return 12;
+    if (distance < 1800) return 10;
+    if (distance < 2000) return 8;
     return 5;
 }
 
-// Сброс дистанции
 function resetDistance() {
     if (polyline) {
         map.removeLayer(polyline);
         polyline = null;
     }
     points = [];
-    mortarElevation = 0;
     document.getElementById('distance').textContent = '0000 m';
     document.getElementById('angle').textContent = '--°';
     document.getElementById('flightTime').textContent = '-- с';
     document.getElementById('shellRadius').textContent = `${MORTAR_CONFIG.shellRadius} м`;
     document.getElementById('points').textContent = '0/2';
-    const elevationEl = document.getElementById('elevation');
-    if (elevationEl) elevationEl.textContent = '0°';
 }
 
-// Очистка точек
 function clearPoints(reload = true) {
     markers.forEach(m => map.removeLayer(m));
     markers = [];
@@ -507,32 +569,22 @@ function clearPoints(reload = true) {
     }
     removeCircles();
     mortarPosition = null;
-    mortarElevation = 0;
     points = [];
     document.getElementById('distance').textContent = '0000 m';
     document.getElementById('angle').textContent = '--°';
     document.getElementById('flightTime').textContent = '-- с';
     document.getElementById('shellRadius').textContent = `${MORTAR_CONFIG.shellRadius} м`;
     document.getElementById('points').textContent = '0/2';
-    const elevationEl = document.getElementById('elevation');
-    if (elevationEl) elevationEl.textContent = '0°';
-    if (elevationPopup) {
-        map.removeLayer(elevationPopup);
-        elevationPopup = null;
-    }
 }
 
-// Показать Help
 function showHelp() {
     document.getElementById('helpPopup').classList.add('active');
 }
 
-// Скрыть Help
 function hideHelp() {
     document.getElementById('helpPopup').classList.remove('active');
 }
 
-// Горячие клавиши
 function handleKeyboard(e) {
     if (e.target.tagName === 'SELECT' || e.target.tagName === 'INPUT') return;
     switch(e.key.toLowerCase()) {
@@ -550,18 +602,20 @@ function handleKeyboard(e) {
             toggle.checked = !toggle.checked;
             toggleMortarMode();
             break;
+        case 'd':
+            toggleDrawPanel();
+            break;
         case 'escape':
             hideHelp();
+            if (drawMode) toggleDrawPanel();
             break;
     }
 }
 
-// Закрытие popup при клике вне
 document.getElementById('helpPopup').addEventListener('click', function(e) {
     if (e.target === this) {
         hideHelp();
     }
 });
 
-// Запуск
 initMap();
