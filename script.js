@@ -96,6 +96,16 @@ function initMap() {
         crs: L.CRS.Simple,
         center: [1000, 1000],
         zoom: 1
+    });
+    
+    loadMap('erangel');
+    map.on('click', handleMapClick);
+    map.on('mousedown', handleDrawStart);      // ← ДОБАВЬ
+    map.on('mousemove', handleDrawMove);       // ← ДОБАВЬ
+    map.on('mouseup', handleDrawEnd);          // ← ДОБАВЬ
+    document.addEventListener('keydown', handleKeyboard);
+    loadTheme();
+}
 
         
     });
