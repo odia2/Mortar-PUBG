@@ -231,3 +231,43 @@ body {
 .color-btn.active {
     border-color: #fff;
 }
+
+/* ===== VISITOR COUNTER ===== */
+.visitor-counter {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(255, 59, 59, 0.15);
+    padding: 8px 15px;
+    border-radius: 20px;
+    border: 1px solid var(--accent);
+    margin-left: 15px;
+}
+
+.blink-dot {
+    width: 10px;
+    height: 10px;
+    background: #ff3b3b;
+    border-radius: 50%;
+    animation: blink 1.5s infinite;
+    box-shadow: 0 0 10px #ff3b3b;
+}
+
+@keyframes blink {
+    0%, 100% {
+        opacity: 1;
+        transform: scale(1);
+    }
+    50% {
+        opacity: 0.4;
+        transform: scale(0.8);
+    }
+}
+
+#visitorCount {
+    font-family: var(--font-heading);
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--accent);
+    min-width: 30px;
+}
