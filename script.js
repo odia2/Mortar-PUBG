@@ -118,20 +118,27 @@ function initMap() {
 // ===== DRAWING FUNCTIONS =====
 
 // Переключение панели рисования
-// Переключение панели рисования
 function toggleDrawPanel() {
     const panel = document.getElementById('drawPanel');
     panel.classList.toggle('active');
     drawMode = panel.classList.contains('active');
     
     if (drawMode) {
-        // ← ОТКЛЮЧИТЬ перетаскивание карты
+        // ОТКЛЮЧИТЬ перетаскивание карты при рисовании
         map.dragging.disable();
+        map.touchZoom.disable();
+        map.doubleClickZoom.disable();
+        map.scrollWheelZoom.disable();
+        
         map.getContainer().classList.add('leaflet-drawing');
         map.getContainer().style.cursor = 'crosshair';
     } else {
-        // ← ВКЛЮЧИТЬ перетаскивание обратно
+        // ВКЛЮЧИТЬ перетаскивание обратно
         map.dragging.enable();
+        map.touchZoom.enable();
+        map.doubleClickZoom.enable();
+        map.scrollWheelZoom.enable();
+        
         map.getContainer().classList.remove('leaflet-drawing');
         map.getContainer().style.cursor = '';
     }
